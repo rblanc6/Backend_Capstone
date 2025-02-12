@@ -31,32 +31,39 @@ const isLoggedIn = async (req, res, next) => {
 };
 
 // Authorize Admin
-const isAdminHere = async (req, res, next) => {
-  try {
-    const { isAdmin } = req.body.isAdmin;
-    if (isAdmin === false) {
-      res.status(403).json({ message: "Forbidden: Admin access required" });
-    } else {
-      const { id } = jwt.verify(token, JWT);
-      const user = await getUserId(id);
-      req.user = user;
-      next();
-    }
-  } catch (error) {
-    next(error);
+// const isAdminHere = async (req, res, next) => {
+//   try {
+//     const { isAdmin } = req.body.isAdmin;
+//     if (isAdmin === false) {
+//       res.status(403).json({ message: "Forbidden: Admin access required" });
+//     } else {
+//       // const { id } = jwt.verify(token, JWT);
+//       // const user = await getUserId(id);
+//       // req.user = user;
+//       next();
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+const checkRole = (roles) => (req, res, next) => {
+  if (!req.user || !roles.includes(req.user.role)) {
+    return res.status(403).json({ message: 'Unauthorized' });
   }
+  next();
 };
 
-router.put("/user/:id", isLoggedIn, isAdminHere, async (req, res, next) => {
+router.put("/user/:id", isLoggedIn, checkRole(['ADMIN']), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { isAdmin } = req.body;
+    const { role } = req.body;
     const assignAdmin = await prisma.users.update({
       where: {
         id: id,
       },
       data: {
-        isAdmin: isAdmin,
+        role: role,
       },
     });
     res.send(assignAdmin);
@@ -104,11 +111,9 @@ router.get("/me", isLoggedIn, async (req, res, next) => {
 });
 
 // Get All Users
-router.get("/users", isLoggedIn, isAdminHere, async (req, res, next) => {
+router.get("/users", isLoggedIn, checkRole(['ADMIN']), async (req, res, next) => {
   try {
     const users = await prisma.users.findMany({});
-    console.log(isLoggedIn);
-    console.log(isAdminHere);
     res.send(users);
   } catch (error) {
     next(error);
@@ -131,7 +136,7 @@ router.get("/user/:id", isLoggedIn, async (req, res, next) => {
 });
 
 // Delete a User
-router.delete("/user/:id", isLoggedIn, isAdminHere, async (req, res, next) => {
+router.delete("/user/:id", isLoggedIn, checkRole(['ADMIN']), async (req, res, next) => {
   try {
     const { id } = req.params;
     const user = await prisma.users.delete({
