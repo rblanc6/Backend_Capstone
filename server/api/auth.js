@@ -30,48 +30,6 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-// Authorize Admin
-// const isAdminHere = async (req, res, next) => {
-//   try {
-//     const { isAdmin } = req.body.isAdmin;
-//     if (isAdmin === false) {
-//       res.status(403).json({ message: "Forbidden: Admin access required" });
-//     } else {
-//       // const { id } = jwt.verify(token, JWT);
-//       // const user = await getUserId(id);
-//       // req.user = user;
-//       next();
-//     }
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-const checkRole = (roles) => (req, res, next) => {
-  if (!req.user || !roles.includes(req.user.role)) {
-    return res.status(403).json({ message: 'Unauthorized' });
-  }
-  next();
-};
-
-router.put("/user/:id", isLoggedIn, checkRole(['ADMIN']), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { role } = req.body;
-    const assignAdmin = await prisma.users.update({
-      where: {
-        id: id,
-      },
-      data: {
-        role: role,
-      },
-    });
-    res.send(assignAdmin);
-  } catch (error) {
-    next(error);
-  }
-});
-
 // Register a User
 router.post("/register", async (req, res, next) => {
   try {
@@ -110,16 +68,6 @@ router.get("/me", isLoggedIn, async (req, res, next) => {
   }
 });
 
-// Get All Users
-router.get("/users", isLoggedIn, checkRole(['ADMIN']), async (req, res, next) => {
-  try {
-    const users = await prisma.users.findMany({});
-    res.send(users);
-  } catch (error) {
-    next(error);
-  }
-});
-
 // Get a Single User by Id
 router.get("/user/:id", isLoggedIn, async (req, res, next) => {
   try {
@@ -130,21 +78,6 @@ router.get("/user/:id", isLoggedIn, async (req, res, next) => {
       },
     });
     res.send(user);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Delete a User
-router.delete("/user/:id", isLoggedIn, checkRole(['ADMIN']), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const user = await prisma.users.delete({
-      where: {
-        id: id,
-      },
-    });
-    res.status(204).send(user);
   } catch (error) {
     next(error);
   }
