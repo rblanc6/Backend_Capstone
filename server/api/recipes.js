@@ -24,22 +24,25 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
+// Import functions
+const { createRecipe } = require("../db/db");
+
 // Get all Recipes
-router.get("/", async (req, res, next) => {
+router.get("/recipes", async (req, res, next) => {
   try {
-    const recipes = await prisma.items.findMany();
-    res.send(recipes);
+    res.send(req.recipes);
   } catch (error) {
     next(error);
   }
 });
 
-// Get Information on an Individual Recipe
-router.get("/:id", async (req, res, next) => {
+// Get my Recipes
+router.get("/user/:id", isLoggedIn, async (req, res, next) => {
   try {
-    const recipes = await prisma.items.findFirstOrThrow({
+    const { id } = req.params;
+    const recipes = await prisma.users.findMany({
       where: {
-        id: parseInt(req.params.id),
+        id: id,
       },
     });
     res.send(recipes);
@@ -48,71 +51,55 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-// Get Individual Recipe Reviews
-router.get("/:id/reviews", async (req, res, next) => {
+// Create a Recipe
+router.post("/recipe", isLoggedIn, async (req, res, next) => {
   try {
-    const reviews = await prisma.reviews.findMany({
-      where: {
-        itemId: parseInt(req.params.id),
-        review: req.body.review,
-      },
-    });
-    res.send(reviews);
+    const { name, description } = req.body;
+    const response = await createRecipe(name, description);
+    res.status(201).send(response);
   } catch (error) {
     next(error);
   }
 });
 
-// Get Individual User Reviews w/ Id
-router.get("/reviews/:id", async (req, res, next) => {
+// Update a Recipe
+router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
-    const review = await prisma.reviews.findFirst({
+    const recipe = await prisma.recipes.update({
       where: {
-        id: parseInt(req.params.id),
+        id: req.params.id,
+        userId: req.user.id,
       },
-    });
-    res.send(review);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Create a Review on an Item w/ a Logged-in User
-router.post("/:id/reviews", isLoggedIn, async (req, res, next) => {
-  try {
-    const reviews = await prisma.reviews.create({
       data: {
-        user: { connect: { id: parseInt(req.user.id) } },
-        item: { connect: { id: parseInt(req.params.id) } },
-        review: req.body.review,
-        rating: parseInt(req.body.rating),
+        name: req.body.name,
+        description: req.body.description,
       },
     });
-
-    res.status(201).send(reviews);
+    if (!recipe) {
+      return res.status(404).send("Recipe not found.");
+    }
+    res.send(recipe);
   } catch (error) {
     next(error);
   }
 });
 
-// Create a Comment on an Item w/ a Review w/ Logged-in User
-router.post(
-  "/:id/reviews/:reviewId/comments",
-  isLoggedIn,
-  async (req, res, next) => {
-    try {
-      const comments = await prisma.comments.create({
-        data: {
-          user: { connect: { id: parseInt(req.user.id) } },
-          reviews: { connect: { id: parseInt(req.params.id) } },
-          comment: req.body.comment,
-        },
-      });
-      res.status(201).send(comments);
-    } catch (error) {
-      next(error);
+// Delete a Recipe
+router.delete("/:id", isLoggedIn, async (req, res, next) => {
+  try {
+    const recipe = await prisma.recipe.delete({
+      where: {
+        id: req.params.id,
+        userId: req.user.id,
+      },
+    });
+    if (!recipe) {
+      return res.status(404).send("Recipe not found.");
     }
+    return res.send(recipe);
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 module.exports = router;

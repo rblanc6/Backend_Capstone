@@ -41,8 +41,8 @@ router.post("/", isLoggedIn, async (req, res, next) => {
     next(error);
   }
 });
-//Get all reviews
 
+//Get all reviews
 router.get("/", async (req, res, next) => {
   try {
     const review = await prisma.reviews.findMany();
