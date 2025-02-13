@@ -28,7 +28,6 @@ model Users {
   role          Role            @default(USER)
   reviews       Reviews[]
   comments      Comments[]
-  UniqueReviews UniqueReviews[]
 }
 
 model Recipes {
@@ -68,20 +67,5 @@ model Reviews {
   recipeId      Int
   recipe        Recipes         @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   comments      Comments[]
-  UniqueReviews UniqueReviews[]
 }
-
-model UniqueReviews {
-  userId   String
-  user     Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipeId Int
-  recipe   Recipes    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  comments Comments[]
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
-  user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewId Int
-  review   Reviews @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-
-  @@id(name: "uniqueReviewId", [userId, reviewId])
 

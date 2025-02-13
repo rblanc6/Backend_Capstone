@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const JWT = process.env.JWT || "1234";
 const { prisma } = require("../db/common");
-const { getUserId } = require("../db/db");
+const { getUserId, createRecipe } = require("../db/db");
 
 // Authorize the Token with Id
 const isLoggedIn = async (req, res, next) => {
@@ -23,9 +23,6 @@ const isLoggedIn = async (req, res, next) => {
     next(error);
   }
 };
-
-// Import functions
-const { createRecipe } = require("../db/db");
 
 // Get all Recipes
 router.get("/recipes", async (req, res, next) => {
