@@ -20,14 +20,15 @@ enum Role {
 }
 
 model Users {
-  id       String     @id @default(uuid())
-  firstName String
-  lastName String
-  email    String     @unique
-  password String
-  role Role @default(USER)
-  reviews  Reviews[]
-  comments Comments[]
+  id            String          @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String          @unique
+  password      String
+  role          Role            @default(USER)
+  reviews       Reviews[]
+  comments      Comments[]
+  UniqueReviews UniqueReviews[]
 }
 
 model Recipes {
@@ -43,21 +44,31 @@ model Categories {
 }
 
 model Comments {
-  id       Int      @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   comment  String
   userId   String
-  user     Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewId Int
-  review   Reviews? @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  review   Reviews @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 }
 
 model Reviews {
-  id       Int        @id @default(autoincrement())
-  review   String
-  rating   Int        @default(0)
+  id            Int             @id @default(autoincrement())
+  review        String
+  rating        Int             @default(0)
+  userId        String
+  user          Users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId      Int
+  recipe        Recipes         @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  comments      Comments[]
+  UniqueReviews UniqueReviews[]
+}
+
+model UniqueReviews {
   userId   String
-  user     Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipeId Int
-  recipe   Recipes    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  comments Comments[]
+  user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewId Int
+  review   Reviews @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@id(name: "uniqueReviewId", [userId, reviewId])
 }
