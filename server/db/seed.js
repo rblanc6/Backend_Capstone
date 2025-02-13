@@ -2,62 +2,77 @@ const db = require("../db/index");
 const { faker } = require("@faker-js/faker");
 const { prisma } = require("../db/common");
 require("dotenv").config();
+const uuid = require("uuid");
 
 async function seed() {
   console.log("Seeding the database.");
   try {
     await db.query("DROP TABLE IF EXISTS users, items, comments, reviews;");
 
-    // Add 10 Users.
+    // Add 5 Users.
     await Promise.all(
-      [...Array(10)].map(() =>
+      [...Array(5)].map(() =>
         prisma.users.create({
           data: {
-            username: faker.internet.username(),
+            firstName: faker.person.firstName(),
+            lastName: faker.person.lastName(),
+            email: faker.internet.email(),
             password: faker.internet.password(),
           },
         })
       )
     );
 
-    // Add 20 Recipes.
+    // Add 10 Recipes.
     await Promise.all(
-      [...Array(20)].map(() =>
-        prisma.items.createMany({
+      [...Array(20)].map((_, i) =>
+        prisma.recipes.create({
           data: {
-            name: faker.commerce.product(),
-            description: faker.commerce.productDescription(),
+            name: faker.food.dish(),
+            description: faker.food.description(),
+            categoryId: (i % 5) + 1,
           },
         })
       )
     );
 
-    // Add 10 Reviews.
+    // Add 5 Categories.
     await Promise.all(
-      [...Array(10)].map((_, i) =>
-        prisma.reviews.createMany({
+      [...Array(5)].map(() =>
+        prisma.categories.create({
           data: {
-            review: faker.lorem.paragraph(2),
-            rating: faker.number.int(5),
-            userId: (i % 5) + 1,
-            itemId: (i % 5) + 1,
+            name: faker.food.ethnicCategory(),
           },
         })
       )
     );
 
-    // Add 10 Comments.
-    await Promise.all(
-      [...Array(10)].map((_, i) =>
-        prisma.comments.createMany({
-          data: {
-            comment: faker.lorem.paragraph(2),
-            userId: (i % 5) + 1,
-            reviewId: (i % 5) + 1,
-          },
-        })
-      )
-    );
+    // // Add 10 Reviews.
+    // await Promise.all(
+    //   [...Array(10)].map((_, i) =>
+    //     prisma.reviews.create({
+    //       data: {
+    //         review: faker.lorem.paragraph(2),
+    //         rating: faker.number.int(5),
+    //         userId: faker.random.arrayElement(userIds),
+    //         recipeId: (i % 5) + 1,
+    //       },
+    //     })
+    //   )
+    // );
+
+    // // Add 10 Comments.
+    // await Promise.all(
+    //   [...Array(10)].map((_, i) =>
+    //     prisma.comments.create({
+    //       data: {
+    //         comment: faker.lorem.paragraph(2),
+    //         userId: uuid.v4(),
+    //         reviewId: (i % 5) + 1,
+    //       },
+    //     })
+    //   )
+    // );
 
     console.log("Database is seeded.");
   } catch (err) {
