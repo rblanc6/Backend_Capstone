@@ -35,12 +35,17 @@ model Recipes {
   id          Int       @id @default(autoincrement())
   name        String
   description String
+  categoryId Int
+  category Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   review      Reviews[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
 }
 
 model Categories {
   id   Int    @id @default(autoincrement())
   name String
+  recipes Recipes[]
 }
 
 model Comments {
@@ -50,6 +55,8 @@ model Comments {
   user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewId Int
   review   Reviews @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
 }
 
 model Reviews {
@@ -66,9 +73,15 @@ model Reviews {
 
 model UniqueReviews {
   userId   String
+  user     Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId Int
+  recipe   Recipes    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  comments Comments[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
   user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewId Int
   review   Reviews @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@id(name: "uniqueReviewId", [userId, reviewId])
-}
+

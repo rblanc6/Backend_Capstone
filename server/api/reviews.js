@@ -36,7 +36,6 @@ router.post("/", isLoggedIn, async (req, res, next) => {
         rating: parseInt(req.body.rating),
       },
     });
-
     res.status(201).send(review);
   } catch (error) {
     next(error);
