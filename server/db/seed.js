@@ -9,8 +9,8 @@ async function seed() {
   try {
     await db.query("DROP TABLE IF EXISTS users, items, comments, reviews;");
 
-    // Add 5 Users.
-    await Promise.all(
+    // Add 5 Users, collect their ID's.
+    const users = await Promise.all(
       [...Array(5)].map(() =>
         prisma.users.create({
           data: {
@@ -22,8 +22,9 @@ async function seed() {
         })
       )
     );
+    const userIds = users.map((user) => user.id);
 
-    // Add 10 Recipes.
+    // Add 20 Recipes.
     await Promise.all(
       [...Array(20)].map((_, i) =>
         prisma.recipes.create({
@@ -47,32 +48,33 @@ async function seed() {
       )
     );
 
-    // // Add 10 Reviews.
-    // await Promise.all(
-    //   [...Array(10)].map((_, i) =>
-    //     prisma.reviews.create({
-    //       data: {
-    //         review: faker.lorem.paragraph(2),
-    //         rating: faker.number.int(5),
-    //         userId: faker.random.arrayElement(userIds),
-    //         recipeId: (i % 5) + 1,
-    //       },
-    //     })
-    //   )
-    // );
+    // Add 10 Reviews, collect their ID's.
+    const reviews = await Promise.all(
+      [...Array(10)].map((_, i) =>
+        prisma.reviews.create({
+          data: {
+            review: faker.lorem.paragraph(2),
+            rating: faker.number.int(5),
+            userId: userIds[Math.floor(Math.random() * userIds.length)],
+            recipeId: (i % 5) + 1,
+          },
+        })
+      )
+    );
+    const reviewIds = reviews.map((review) => review.id);
 
-    // // Add 10 Comments.
-    // await Promise.all(
-    //   [...Array(10)].map((_, i) =>
-    //     prisma.comments.create({
-    //       data: {
-    //         comment: faker.lorem.paragraph(2),
-    //         userId: uuid.v4(),
-    //         reviewId: (i % 5) + 1,
-    //       },
-    //     })
-    //   )
-    // );
+    // Add 10 Comments.
+    await Promise.all(
+      [...Array(10)].map((_, i) =>
+        prisma.comments.create({
+          data: {
+            comment: faker.lorem.paragraph(2),
+            userId: userIds[Math.floor(Math.random() * userIds.length)],
+            reviewId: reviewIds[Math.floor(Math.random() * reviewIds.length)],
+          },
+        })
+      )
+    );
 
     console.log("Database is seeded.");
   } catch (err) {
