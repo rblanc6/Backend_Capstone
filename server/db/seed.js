@@ -32,6 +32,7 @@ async function seed() {
           data: {
             name: faker.food.dish(),
             description: faker.food.description(),
+            instructions: faker.food.description(),
             categoryId: (i % 5) + 1,
             creatorId: userIds[Math.floor(Math.random() * userIds.length)],
           },

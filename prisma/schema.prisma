@@ -20,12 +20,12 @@ enum Role {
 }
 
 model Users {
-  id        String     @id @default(uuid())
+  id        String            @id @default(uuid())
   firstName String
   lastName  String
-  email     String     @unique
+  email     String            @unique
   password  String
-  role      Role       @default(USER)
+  role      Role              @default(USER)
   reviews   Reviews[]
   comments  Comments[]
   recipes   Recipes[]
@@ -33,24 +33,50 @@ model Users {
 }
 
 model Recipes {
-  id          Int        @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   name        String
   description String
+  instructions  String
+  ingredients RecipeIngredient[]
+  photo       String?
   categoryId  Int
-  category    Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category    Categories         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   creatorId   String
-  user        Users      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  user        Users              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   review      Reviews[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime?  @updatedAt
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime?          @updatedAt()
   favoritedBy FavoriteRecipes[]
 }
 
-model FavoriteRecipes {  
-  userId     String  
-  user       Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipeId  Int
-  recipe       Recipes @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+model Ingredients {
+  id               Int                @id @default(autoincrement())
+  name             String
+  recipeIngredient RecipeIngredient[]
+}
+
+model Units {
+  id               Int                @id @default(autoincrement())
+  name             String
+  recipeIngredient RecipeIngredient[]
+}
+
+model RecipeIngredient {
+  id           Int         @id @default(autoincrement())
+  recipeId     Int
+  recipe       Recipes     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredientId Int
+  ingredient   Ingredients @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  quantity     String
+  unitId       Int
+  unit         Units       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+}
+
+model FavoriteRecipes {
+  userId   String
+  user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId Int
+  recipe   Recipes @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@id(name: "favoriteId", [userId, recipeId])
 }
@@ -69,7 +95,7 @@ model Comments {
   reviewId  Int
   review    Reviews   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  updatedAt DateTime? @updatedAt()
 }
 
 model Reviews {
@@ -82,7 +108,7 @@ model Reviews {
   recipe    Recipes    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   comments  Comments[]
   createdAt DateTime   @default(now())
-  updatedAt DateTime?  @updatedAt
+  updatedAt DateTime?  @updatedAt()
 
   @@unique([userId, recipeId])
 }
