@@ -25,7 +25,7 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-//Post a review
+// Post a Review
 router.post("/", isLoggedIn, async (req, res, next) => {
   try {
       const duplicatedReview = await prisma.reviews.findFirst({
@@ -51,7 +51,7 @@ router.post("/", isLoggedIn, async (req, res, next) => {
     }
   });
 
-//Get all reviews
+// Get All Reviews
 router.get("/", async (req, res, next) => {
   try {
     const review = await prisma.reviews.findMany();
@@ -61,7 +61,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-//Get all reviews by user
+// Get all Reviews by Logged-In User
 router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   try {
     const review = await prisma.reviews.findMany({
@@ -75,7 +75,7 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   }
 });
 
-//Get individual review
+// Get an Individual Review
 router.get("/review/:id", async (req, res, next) => {
   try {
     const review = await prisma.reviews.findFirst({
@@ -89,7 +89,7 @@ router.get("/review/:id", async (req, res, next) => {
   }
 });
 
-//Update user's review
+// Update a Logged-In User's Review
 router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const reviews = await prisma.reviews.update({
@@ -107,7 +107,7 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
   }
 });
 
-//Delete user's review
+// Delete a Logged-In User's Review
 router.delete("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const reviews = await prisma.reviews.delete({

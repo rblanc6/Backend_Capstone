@@ -48,7 +48,7 @@ router.get(
   }
 );
 
-// Update User Role as Admin
+// Update User Roles as Admin
 router.put(
   "/user/:id",
   isLoggedIn,

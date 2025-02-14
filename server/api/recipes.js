@@ -34,7 +34,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// Get my Recipes
+// Get A Logged-in User's Recipes
 router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   try {
     const userId = req.params.userId;
@@ -66,7 +66,7 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
   }
 });
 
-// Update a Recipe
+// Update a Logged-in User's Recipe
 router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const recipe = await prisma.recipes.update({
@@ -104,7 +104,7 @@ router.post("/favorite", isLoggedIn, async (req, res, next) => {
   }
 });
 
-// Get All User's Favorite Recipes
+// Get All Logged-in User's Favorite Recipes
 router.get("/favorites/:userId", isLoggedIn, async (req, res, next) => {
     try {
       const userId = req.params.userId;
@@ -119,7 +119,7 @@ router.get("/favorites/:userId", isLoggedIn, async (req, res, next) => {
     }
   });
 
-// Delete a Favorite Recipe
+// Delete a Logged-in User's Favorite Recipe
 router.delete("/favorite/:recipeId", isLoggedIn, async (req, res, next) => {
   try {
     const favorite = await prisma.favoriteRecipes.delete({
@@ -136,7 +136,7 @@ router.delete("/favorite/:recipeId", isLoggedIn, async (req, res, next) => {
   }
 });
 
-// Delete a Recipe
+// Delete a Logged-in User's Recipe
 router.delete("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const recipe = await prisma.recipes.findFirstOrThrow({
