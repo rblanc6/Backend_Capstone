@@ -25,16 +25,6 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-// TO DO
-// View List of All Recipes
-// Add Recipes
-// Edit Recipes
-// Remove Recipes
-// Add Category to Recipe
-// Add Photo to Recipe
-
-// Administrators should be able to add and modify relevant information on an item. It is up to you to decide what information is relevant, necessary, or otherwise.
-
 // Authorize Admin
 const checkRole = (roles) => (req, res, next) => {
   if (!req.user || !roles.includes(req.user.role)) {
@@ -42,6 +32,94 @@ const checkRole = (roles) => (req, res, next) => {
   }
   next();
 };
+
+// TO DO
+// View List of All Recipes
+router.get("/recipes", isLoggedIn, checkRole(["ADMIN"]), async (req, res, next) => {
+  try {
+    const recipes = await prisma.recipes.findMany();
+    res.send(recipes);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Add Recipes
+router.post(
+  "/recipe",
+  isLoggedIn,
+  checkRole(["ADMIN"]),
+  async (req, res, next) => {
+    try {
+      const recipe = await prisma.recipes.create({
+        data: {
+          user: { connect: { id: req.user.id } },
+          name: req.body.name,
+          description: req.body.description,
+          instructions: req.body.instructions,
+          category: { connect: { id: parseInt(req.body.category) } },
+        },
+      });
+      res.status(201).send(recipe);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+// Edit Recipes
+router.put(
+  "/recipe/:id",
+  isLoggedIn,
+  checkRole(["ADMIN"]),
+  async (req, res, next) => {
+    try {
+      const recipe = await prisma.recipes.update({
+        where: {
+          id: parseInt(req.params.id),
+          // creatorId: req.body.creatorId,
+        },
+        data: {
+          name: req.body.name,
+          description: req.body.description,
+          instructions: req.body.instructions,
+          category: { connect: { id: parseInt(req.body.category) } },
+        },
+      });
+      if (!recipe) {
+        return res.status(404).send("Recipe not found.");
+      }
+      res.send(recipe);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Remove Recipes
+router.delete(
+  "/recipe/:id",
+  isLoggedIn,
+  checkRole(["ADMIN"]),
+  async (req, res, next) => {
+    try {
+      const recipe = await prisma.recipes.delete({
+        where: {
+          id: parseInt(req.params.id),
+        },
+      });
+      if (!recipe) {
+        return res.status(404).send("Recipe not found.");
+      }
+      res.status(204).send(recipe);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+// Add Category to Recipe
+// Add Photo to Recipe
+
+// Administrators should be able to add and modify relevant information on an item. It is up to you to decide what information is relevant, necessary, or otherwise.
 
 // Get All Users as Admin
 router.get(

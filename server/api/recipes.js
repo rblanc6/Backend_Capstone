@@ -57,6 +57,7 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
         user: { connect: { id: req.user.id } },
         name: req.body.name,
         description: req.body.description,
+        instructions: req.body.instructions,
         category: { connect: { id: parseInt(req.body.category) } },
       },
     });
@@ -77,6 +78,7 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
       data: {
         name: req.body.name,
         description: req.body.description,
+        instructions: req.body.instructions,
         category: { connect: { id: parseInt(req.body.category) } },
       },
     });
