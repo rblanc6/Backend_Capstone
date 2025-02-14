@@ -139,7 +139,7 @@ router.delete("/favorite/:recipeId", isLoggedIn, async (req, res, next) => {
 // Delete a Logged-in User's Recipe
 router.delete("/:id", isLoggedIn, async (req, res, next) => {
   try {
-    const recipe = await prisma.recipes.findFirstOrThrow({
+    const recipe = await prisma.recipes.delete({
       where: {
         id: parseInt(req.params.id),
         creatorId: req.user.id,
