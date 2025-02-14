@@ -26,30 +26,32 @@ const isLoggedIn = async (req, res, next) => {
 };
 
 // Post a Review
-router.post("/", isLoggedIn, async (req, res, next) => {
+router.post("/review", isLoggedIn, async (req, res, next) => {
   try {
-      const duplicatedReview = await prisma.reviews.findFirst({
-        where: {
-          userId: req.user.id,
-          recipeId: parseInt(req.body.recipe),
-        },
-      });
-      if (duplicatedReview) {
-        return res.status(401).json({ message: "Error: You have already reviewed this recipe." });
-      }
-      const review = await prisma.reviews.create({
-        data: {
-          user: { connect: { id: req.user.id } },
-          recipe: { connect: { id: parseInt(req.body.recipe) } },
-          review: req.body.review,
-          rating: parseInt(req.body.rating),
-        },
-      });
-      res.status(201).send(review);
-    } catch (error) {
-      next(error);
+    const duplicatedReview = await prisma.reviews.findFirst({
+      where: {
+        userId: req.user.id,
+        recipeId: parseInt(req.body.recipe),
+      },
+    });
+    if (duplicatedReview) {
+      return res
+        .status(401)
+        .json({ message: "Error: You have already reviewed this recipe." });
     }
-  });
+    const review = await prisma.reviews.create({
+      data: {
+        user: { connect: { id: req.user.id } },
+        recipe: { connect: { id: parseInt(req.body.recipe) } },
+        review: req.body.review,
+        rating: parseInt(req.body.rating),
+      },
+    });
+    res.status(201).send(review);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Get All Reviews
 router.get("/", async (req, res, next) => {
@@ -113,6 +115,7 @@ router.delete("/:id", isLoggedIn, async (req, res, next) => {
     const reviews = await prisma.reviews.delete({
       where: {
         id: parseInt(req.params.id),
+        userId: req.user.id,
       },
     });
     res.status(204).send(reviews);
