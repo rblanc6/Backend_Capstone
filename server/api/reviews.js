@@ -27,7 +27,7 @@ const isLoggedIn = async (req, res, next) => {
 
 //Post a review
 router.post("/", isLoggedIn, async (req, res, next) => {
-    try {
+  try {
       const duplicatedReview = await prisma.reviews.findFirst({
         where: {
           userId: req.user.id,
