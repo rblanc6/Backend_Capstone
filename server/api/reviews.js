@@ -28,6 +28,15 @@ const isLoggedIn = async (req, res, next) => {
 //Post a review
 router.post("/", isLoggedIn, async (req, res, next) => {
   try {
+    const duplicatedReview = await prisma.reviews.findFirst({
+      where: {
+        userId: req.user.id,
+        recipeId: parseInt(req.body.recipe),
+      },
+    });
+    if (duplicatedReview) {
+      return res.status(401).json({ message: "Error: Duplicated User Review" });
+    }
     const review = await prisma.reviews.create({
       data: {
         user: { connect: { id: req.user.id } },
