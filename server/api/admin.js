@@ -25,6 +25,7 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
+// TO DO
 // View List of All Recipes
 // Add Recipes
 // Edit Recipes
@@ -32,8 +33,7 @@ const isLoggedIn = async (req, res, next) => {
 // Add Category to Recipe
 // Add Photo to Recipe
 
-// Administrators should be able to add and modify relevant information on an item. It is up to you to decide what information is relevant, necessary, or otherwise. 
-
+// Administrators should be able to add and modify relevant information on an item. It is up to you to decide what information is relevant, necessary, or otherwise.
 
 // Authorize Admin
 const checkRole = (roles) => (req, res, next) => {
