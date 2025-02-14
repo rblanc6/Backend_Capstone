@@ -40,14 +40,4 @@ const getUserId = async (id) => {
   return response;
 };
 
-//Create a Recipe
-const createRecipe = async (name, description) => {
-  const response = await prisma.recipes.create({
-    data: {
-      name,
-      description,
-    },
-  });
-};
-
-module.exports = { createUser, getUser, getUserId, createRecipe };
+module.exports = { createUser, getUser, getUserId };
