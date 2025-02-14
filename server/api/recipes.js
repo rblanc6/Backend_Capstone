@@ -37,7 +37,7 @@ router.get("/recipes", async (req, res, next) => {
 router.get("/user/:id", isLoggedIn, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const recipes = await prisma.users.findMany({
+    const recipes = await prisma.recipes.findMany({
       where: {
         id: id,
       },
@@ -65,7 +65,7 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
     const recipe = await prisma.recipes.update({
       where: {
         id: req.params.id,
-        userId: req.user.id,
+        creatorId: req.body.creatorId,
       },
       data: {
         name: req.body.name,
@@ -87,7 +87,7 @@ router.delete("/:id", isLoggedIn, async (req, res, next) => {
     const recipe = await prisma.recipe.delete({
       where: {
         id: req.params.id,
-        userId: req.user.id,
+        creatorId: req.body.creatorId,
       },
     });
     if (!recipe) {
