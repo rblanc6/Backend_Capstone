@@ -28,7 +28,7 @@ app.use("/api", require("./api"));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).send({ error: "Something went wrong!" });
+  res.status(500).send({ error: err });
 });
 
 module.exports = app;

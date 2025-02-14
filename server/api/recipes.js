@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const JWT = process.env.JWT || "1234";
 const { prisma } = require("../db/common");
-const { getUserId, createRecipe } = require("../db/db");
+const { getUserId } = require("../db/db");
 
 // Authorize the Token with Id
 const isLoggedIn = async (req, res, next) => {
@@ -51,9 +51,15 @@ router.get("/user/:id", isLoggedIn, async (req, res, next) => {
 // Create a Recipe
 router.post("/recipe", isLoggedIn, async (req, res, next) => {
   try {
-    const { name, description } = req.body;
-    const response = await createRecipe(name, description);
-    res.status(201).send(response);
+    const recipe = await prisma.recipes.create({
+      data: {
+        user: { connect: { id: req.user.id } },
+        name: req.body.name,
+        description: req.body.description,
+        category: { connect: { id: parseInt(req.body.category) } },
+      },
+    });
+    res.status(201).send(recipe);
   } catch (error) {
     next(error);
   }
@@ -64,12 +70,13 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const recipe = await prisma.recipes.update({
       where: {
-        id: req.params.id,
+        id: parseInt(req.params.id),
         creatorId: req.body.creatorId,
       },
       data: {
         name: req.body.name,
         description: req.body.description,
+        category: { connect: { id: parseInt(req.body.category) } },
       },
     });
     if (!recipe) {
@@ -84,16 +91,16 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
 // Delete a Recipe
 router.delete("/:id", isLoggedIn, async (req, res, next) => {
   try {
-    const recipe = await prisma.recipe.delete({
+    const recipe = await prisma.recipes.findFirstOrThrow({
       where: {
-        id: req.params.id,
-        creatorId: req.body.creatorId,
+        id: parseInt(req.params.id),
+        creatorId: req.user.id,
       },
     });
     if (!recipe) {
       return res.status(404).send("Recipe not found.");
     }
-    return res.send(recipe);
+    res.status(204).send(recipe);
   } catch (error) {
     next(error);
   }
