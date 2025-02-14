@@ -25,54 +25,81 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
+// Write a Comment
+router.post("/comment", isLoggedIn, async (req, res, next) => {
+  try {
+    const comment = await prisma.comments.create({
+      data: {
+        user: { connect: { id: req.user.id } },
+        review: { connect: { id: parseInt(req.body.review) } },
+        comment: req.body.comment,
+      },
+    });
+    res.status(201).send(comment);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get Comments Made by a Logged-in User
-router.get("/me", isLoggedIn, async (req, res, next) => {
-    try {
-      const comments = await prisma.comments.findMany({
-        where: {
-          userId: parseInt(req.user.id),
-          comment: req.body.comment,
-        },
-      });
-      res.send(comments);
-    } catch (error) {
-      next(error);
-    }
-  });
-  
-  // Update a Logged-in User's Comment
-  router.put("/:id", isLoggedIn, async (req, res, next) => {
-    try {
-      const comments = await prisma.comments.update({
-        where: {
-          id: parseInt(req.params.id),
-        },
-        data: {
-          comment: req.body.comment,
-        },
-      });
-      res.send(comments);
-    } catch (error) {
-      next(error);
-    }
-  });
-  
-  // Delete a Logged-in User's Comment
-  router.delete("/:id", isLoggedIn, async (req, res, next) => {
-    try {
-      const comments = await prisma.comments.delete({
-        where: {
-          id: parseInt(req.params.id),
-        },
-      });
-      console.log(comments)
-      res.sendStatus(204);
-    } catch (error) {
-      next(error);
-    }
-  });
-  
-  module.exports = router;
-  
+router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
+  try {
+    const comments = await prisma.comments.findMany({
+      where: {
+        userId: req.params.userId,
+      },
+    });
+    res.send(comments);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get Individual Comment
+router.get("/:id", isLoggedIn, async (req, res, next) => {
+  try {
+    const comments = await prisma.comments.findMany({
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
+    res.send(comments);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update a Logged-in User's Comment
+router.put("/:id", isLoggedIn, async (req, res, next) => {
+  try {
+    const comments = await prisma.comments.update({
+      where: {
+        id: parseInt(req.params.id),
+      },
+      data: {
+        comment: req.body.comment,
+      },
+    });
+    res.send(comments);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete a Logged-in User's Comment
+router.delete("/:id", isLoggedIn, async (req, res, next) => {
+  try {
+    const comments = await prisma.comments.delete({
+      where: {
+        id: parseInt(req.params.id),
+        userId: req.user.id,
+      },
+    });
+    console.log(comments);
+    res.sendStatus(204);
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;
