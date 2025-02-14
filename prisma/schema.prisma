@@ -29,6 +29,7 @@ model Users {
   reviews   Reviews[]
   comments  Comments[]
   recipes   Recipes[]
+  favorites FavoriteRecipes[]
 }
 
 model Recipes {
@@ -42,6 +43,16 @@ model Recipes {
   review      Reviews[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime?  @updatedAt
+  favoritedBy FavoriteRecipes[]
+}
+
+model FavoriteRecipes {  
+  userId     String  
+  user       Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId  Int
+  recipe       Recipes @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id(name: "favoriteId", [userId, recipeId])
 }
 
 model Categories {

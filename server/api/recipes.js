@@ -25,21 +25,22 @@ const isLoggedIn = async (req, res, next) => {
 };
 
 // Get all Recipes
-router.get("/recipes", async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
-    res.send(req.recipes);
+    const recipes = await prisma.recipes.findMany();
+    res.send(recipes);
   } catch (error) {
     next(error);
   }
 });
 
 // Get my Recipes
-router.get("/user/:id", isLoggedIn, async (req, res, next) => {
+router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const userId = req.params.userId;
     const recipes = await prisma.recipes.findMany({
       where: {
-        id: id,
+        creatorId: userId,
       },
     });
     res.send(recipes);
@@ -83,6 +84,53 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
       return res.status(404).send("Recipe not found.");
     }
     res.send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Favorite a Recipe
+router.post("/favorite", isLoggedIn, async (req, res, next) => {
+  try {
+    const favorite = await prisma.favoriteRecipes.create({
+      data: {
+        user: { connect: { id: req.user.id } },
+        recipe: { connect: { id: parseInt(req.body.recipe) } },
+      },
+    });
+    res.status(201).send(favorite);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get All User's Favorite Recipes
+router.get("/favorites/:userId", isLoggedIn, async (req, res, next) => {
+    try {
+      const userId = req.params.userId;
+      const recipes = await prisma.favoriteRecipes.findMany({
+        where: {
+          userId: userId,
+        },
+      });
+      res.send(recipes);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+// Delete a Favorite Recipe
+router.delete("/favorite/:recipeId", isLoggedIn, async (req, res, next) => {
+  try {
+    const favorite = await prisma.favoriteRecipes.delete({
+      where: {
+        favoriteId: {
+          userId: req.user.id,
+          recipeId: parseInt(req.params.recipeId),
+        }
+      },
+    });
+    res.status(204).send(favorite);
   } catch (error) {
     next(error);
   }
