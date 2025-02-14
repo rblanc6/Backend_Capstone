@@ -3,6 +3,7 @@ const { faker } = require("@faker-js/faker");
 const { prisma } = require("../db/common");
 require("dotenv").config();
 const uuid = require("uuid");
+const { connect } = require("../api");
 
 async function seed() {
   console.log("Seeding the database.");
@@ -24,8 +25,44 @@ async function seed() {
     );
     const userIds = users.map((user) => user.id);
 
+    // Add 5 Categories.
+    const categories = await Promise.all(
+      [...Array(5)].map(() =>
+        prisma.categories.create({
+          data: {
+            name: faker.food.ethnicCategory(),
+          },
+        })
+      )
+    );
+    const categoryId = categories.map((category) => category.id);
+
+    // Add 5 Ingredients.
+    const ingredient = await Promise.all(
+      [...Array(5)].map(() =>
+        prisma.ingredients.create({
+          data: {
+            name: faker.food.ingredient(),
+          },
+        })
+      )
+    );
+    const ingredientId = ingredient.map((ingredient) => ingredient.id);
+
+    // Add 5 Units.
+    const units = await Promise.all(
+      [...Array(5)].map(() =>
+        prisma.units.create({
+          data: {
+            name: faker.lorem.word(),
+          },
+        })
+      )
+    );
+    const unitId = units.map((unit) => unit.id);
+
     // Add 20 Recipes.
-    
+
     const recipes = await Promise.all(
       [...Array(20)].map((_, i) =>
         prisma.recipes.create({
@@ -40,15 +77,36 @@ async function seed() {
       )
     );
     const recipeId = recipes.map((recipe) => recipe.id);
-    // Add 5 Categories.
-    await Promise.all(
+
+    // Add 5 RecipeIngredients.
+    const recipeIngredient = await Promise.all(
       [...Array(5)].map(() =>
-        prisma.categories.create({
+        prisma.recipeIngredient.create({
           data: {
-            name: faker.food.ethnicCategory(),
+            recipe: {
+              connect: {
+                id: recipeId[Math.floor(Math.random() * recipeId.length)],
+              },
+            },
+            ingredient: {
+              connect: {
+                id: ingredientId[
+                  Math.floor(Math.random() * ingredientId.length)
+                ],
+              },
+            },
+            quantity: faker.finance.amount(),
+            unit: {
+              connect: {
+                id: unitId[Math.floor(Math.random() * unitId.length)],
+              },
+            },
           },
         })
       )
+    );
+    const recipeIngredientId = recipeIngredient.map(
+      (recipeIngredient) => recipeIngredient.id
     );
 
     // Add 10 Reviews, collect their ID's.
@@ -78,6 +136,8 @@ async function seed() {
     //     })
     //   )
     // );
+
+    // Add ingredients
 
     console.log("Database is seeded.");
   } catch (err) {

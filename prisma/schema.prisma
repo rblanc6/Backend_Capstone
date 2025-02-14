@@ -37,7 +37,7 @@ model Recipes {
   name        String
   description String
   instructions  String
-  ingredients RecipeIngredient[]
+  ingredient RecipeIngredient[]
   photo       String?
   categoryId  Int
   category    Categories         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
