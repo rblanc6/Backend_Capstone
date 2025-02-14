@@ -20,55 +20,58 @@ enum Role {
 }
 
 model Users {
-  id            String          @id @default(uuid())
-  firstName     String
-  lastName      String
-  email         String          @unique
-  password      String
-  role          Role            @default(USER)
-  reviews       Reviews[]
-  comments      Comments[]
+  id        String     @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String     @unique
+  password  String
+  role      Role       @default(USER)
+  reviews   Reviews[]
+  comments  Comments[]
+  recipes   Recipes[]
 }
 
 model Recipes {
-  id          Int       @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   description String
-  categoryId Int
-  category Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  Int
+  category    Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  creatorId   String
+  user        Users      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   review      Reviews[]
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime?            @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime?  @updatedAt
 }
 
 model Categories {
-  id   Int    @id @default(autoincrement())
-  name String
+  id      Int       @id @default(autoincrement())
+  name    String
   recipes Recipes[]
 }
 
 model Comments {
-  id       Int     @id @default(autoincrement())
-  comment  String
-  userId   String
-  user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewId Int
-  review   Reviews @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime?            @updatedAt
+  id        Int       @id @default(autoincrement())
+  comment   String
+  userId    String
+  user      Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewId  Int
+  review    Reviews   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model Reviews {
-  id            Int             @id @default(autoincrement())
-  review        String
-  rating        Int             @default(0)
-  userId        String
-  user          Users           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipeId      Int
-  recipe        Recipes         @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  comments      Comments[]
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime?            @updatedAt
+  id        Int        @id @default(autoincrement())
+  review    String
+  rating    Int        @default(0)
+  userId    String
+  user      Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId  Int
+  recipe    Recipes    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  comments  Comments[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime?  @updatedAt
+
   @@unique([userId, recipeId])
 }
-
