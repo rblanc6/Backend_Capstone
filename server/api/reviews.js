@@ -27,20 +27,29 @@ const isLoggedIn = async (req, res, next) => {
 
 //Post a review
 router.post("/", isLoggedIn, async (req, res, next) => {
-  try {
-    const review = await prisma.reviews.create({
-      data: {
-        user: { connect: { id: req.user.id } },
-        recipe: { connect: { id: parseInt(req.body.recipe) } },
-        review: req.body.review,
-        rating: parseInt(req.body.rating),
-      },
-    });
-    res.status(201).send(review);
-  } catch (error) {
-    next(error);
-  }
-});
+    try {
+      const duplicatedReview = await prisma.reviews.findFirst({
+        where: {
+          userId: req.user.id,
+          recipeId: parseInt(req.body.recipe),
+        },
+      });
+      if (duplicatedReview) {
+        return res.status(401).json({ message: "Error: You have already reviewed this recipe." });
+      }
+      const review = await prisma.reviews.create({
+        data: {
+          user: { connect: { id: req.user.id } },
+          recipe: { connect: { id: parseInt(req.body.recipe) } },
+          review: req.body.review,
+          rating: parseInt(req.body.rating),
+        },
+      });
+      res.status(201).send(review);
+    } catch (error) {
+      next(error);
+    }
+  });
 
 //Get all reviews
 router.get("/", async (req, res, next) => {
@@ -53,11 +62,11 @@ router.get("/", async (req, res, next) => {
 });
 
 //Get all reviews by user
-router.get("/:userId", isLoggedIn, async (req, res, next) => {
+router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   try {
     const review = await prisma.reviews.findMany({
       where: {
-        userId: req.body.userId,
+        userId: req.params.userId,
       },
     });
     res.send(review);
@@ -67,7 +76,7 @@ router.get("/:userId", isLoggedIn, async (req, res, next) => {
 });
 
 //Get individual review
-router.get("/:id", async (req, res, next) => {
+router.get("/review/:id", async (req, res, next) => {
   try {
     const review = await prisma.reviews.findFirst({
       where: {
