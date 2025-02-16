@@ -70,6 +70,7 @@ async function seed() {
             name: faker.food.dish(),
             description: faker.food.description(),
             instructions: faker.food.description(),
+            photo: faker.image.url(),
             categories: {
               connect: {
                 id: categoryId[Math.floor(Math.random() * categoryId.length)],
