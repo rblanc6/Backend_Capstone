@@ -52,13 +52,16 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
 // Create a Recipe
 router.post("/recipe", isLoggedIn, async (req, res, next) => {
   try {
+    const categoryIds = req.body.categories.map((id) => parseInt(id));
     const recipe = await prisma.recipes.create({
       data: {
         user: { connect: { id: req.user.id } },
         name: req.body.name,
         description: req.body.description,
         instructions: req.body.instructions,
-        category: { connect: { id: parseInt(req.body.category) } },
+        categories: {
+          connect: categoryIds.map((id) => ({ id })),
+        },
       },
     });
     res.status(201).send(recipe);
@@ -70,6 +73,7 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
 // Update a Logged-in User's Recipe
 router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
+    const categoryIds = req.body.categories.map((id) => parseInt(id));
     const recipe = await prisma.recipes.update({
       where: {
         id: parseInt(req.params.id),
@@ -79,12 +83,30 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
         name: req.body.name,
         description: req.body.description,
         instructions: req.body.instructions,
-        category: { connect: { id: parseInt(req.body.category) } },
+        categories: {
+          connect: categoryIds.map((id) => ({ id })),
+        },
       },
     });
     if (!recipe) {
       return res.status(404).send("Recipe not found.");
     }
+    res.send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Remove a Category from a Logged-in User's Recipe
+router.put("/removecategory/:id", isLoggedIn, async (req, res, next) => {
+  try {
+    const categoryIdToRemove = parseInt(req.body.categories);
+    const recipe = await prisma.recipes.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        categories: { disconnect: { id: categoryIdToRemove } },
+      },
+    });
     res.send(recipe);
   } catch (error) {
     next(error);
@@ -108,18 +130,18 @@ router.post("/favorite", isLoggedIn, async (req, res, next) => {
 
 // Get All Logged-in User's Favorite Recipes
 router.get("/favorites/:userId", isLoggedIn, async (req, res, next) => {
-    try {
-      const userId = req.params.userId;
-      const recipes = await prisma.favoriteRecipes.findMany({
-        where: {
-          userId: userId,
-        },
-      });
-      res.send(recipes);
-    } catch (error) {
-      next(error);
-    }
-  });
+  try {
+    const userId = req.params.userId;
+    const recipes = await prisma.favoriteRecipes.findMany({
+      where: {
+        userId: userId,
+      },
+    });
+    res.send(recipes);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Delete a Logged-in User's Favorite Recipe
 router.delete("/favorite/:recipeId", isLoggedIn, async (req, res, next) => {
@@ -129,7 +151,7 @@ router.delete("/favorite/:recipeId", isLoggedIn, async (req, res, next) => {
         favoriteId: {
           userId: req.user.id,
           recipeId: parseInt(req.params.recipeId),
-        }
+        },
       },
     });
     res.status(204).send(favorite);

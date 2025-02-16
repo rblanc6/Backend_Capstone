@@ -35,14 +35,19 @@ const checkRole = (roles) => (req, res, next) => {
 
 // TO DO
 // View List of All Recipes
-router.get("/recipes", isLoggedIn, checkRole(["ADMIN"]), async (req, res, next) => {
-  try {
-    const recipes = await prisma.recipes.findMany();
-    res.send(recipes);
-  } catch (error) {
-    next(error);
+router.get(
+  "/recipes",
+  isLoggedIn,
+  checkRole(["ADMIN"]),
+  async (req, res, next) => {
+    try {
+      const recipes = await prisma.recipes.findMany();
+      res.send(recipes);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 // Add Recipes
 router.post(
@@ -51,13 +56,16 @@ router.post(
   checkRole(["ADMIN"]),
   async (req, res, next) => {
     try {
+      const categoryIds = req.body.categories.map((id) => parseInt(id));
       const recipe = await prisma.recipes.create({
         data: {
           user: { connect: { id: req.user.id } },
           name: req.body.name,
           description: req.body.description,
           instructions: req.body.instructions,
-          category: { connect: { id: parseInt(req.body.category) } },
+          categories: {
+            connect: categoryIds.map((id) => ({ id })),
+          },
         },
       });
       res.status(201).send(recipe);
@@ -73,6 +81,7 @@ router.put(
   checkRole(["ADMIN"]),
   async (req, res, next) => {
     try {
+      const categoryIds = req.body.categories.map((id) => parseInt(id));
       const recipe = await prisma.recipes.update({
         where: {
           id: parseInt(req.params.id),
@@ -82,12 +91,35 @@ router.put(
           name: req.body.name,
           description: req.body.description,
           instructions: req.body.instructions,
-          category: { connect: { id: parseInt(req.body.category) } },
+          categories: {
+            connect: categoryIds.map((id) => ({ id })),
+          },
         },
       });
       if (!recipe) {
         return res.status(404).send("Recipe not found.");
       }
+      res.send(recipe);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Remove a Category from a Recipe
+router.put(
+  "/recipe/removecategory/:id",
+  isLoggedIn,
+  checkRole(["ADMIN"]),
+  async (req, res, next) => {
+    try {
+      const categoryIdToRemove = parseInt(req.body.categories);
+      const recipe = await prisma.recipes.update({
+        where: { id: parseInt(req.params.id) },
+        data: {
+          categories: { disconnect: { id: categoryIdToRemove } },
+        },
+      });
       res.send(recipe);
     } catch (error) {
       next(error);
@@ -116,7 +148,7 @@ router.delete(
     }
   }
 );
-// Add Category to Recipe
+
 // Add Photo to Recipe
 
 // Administrators should be able to add and modify relevant information on an item. It is up to you to decide what information is relevant, necessary, or otherwise.

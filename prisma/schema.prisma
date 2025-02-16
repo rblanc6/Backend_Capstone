@@ -39,8 +39,7 @@ model Recipes {
   instructions  String
   ingredients RecipeIngredient[]
   photo       String?
-  categoryId  Int
-  category    Categories         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categories  Categories[]       @relation("RecipeCategories")
   creatorId   String
   user        Users              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   review      Reviews[]
@@ -84,7 +83,7 @@ model FavoriteRecipes {
 model Categories {
   id      Int       @id @default(autoincrement())
   name    String
-  recipes Recipes[]
+  recipes Recipes[] @relation("RecipeCategories")
 }
 
 model Comments {
