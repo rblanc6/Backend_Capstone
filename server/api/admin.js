@@ -63,6 +63,7 @@ router.post(
           name: req.body.name,
           description: req.body.description,
           instructions: req.body.instructions,
+          photo: req.body.photo,
           categories: {
             connect: categoryIds.map((id) => ({ id })),
           },
@@ -91,6 +92,7 @@ router.put(
           name: req.body.name,
           description: req.body.description,
           instructions: req.body.instructions,
+          photo: req.body.photo,
           categories: {
             connect: categoryIds.map((id) => ({ id })),
           },

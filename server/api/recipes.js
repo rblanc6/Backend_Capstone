@@ -59,6 +59,7 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
         name: req.body.name,
         description: req.body.description,
         instructions: req.body.instructions,
+        photo: req.body.photo,
         categories: {
           connect: categoryIds.map((id) => ({ id })),
         },
@@ -83,6 +84,7 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
         name: req.body.name,
         description: req.body.description,
         instructions: req.body.instructions,
+        photo: req.body.photo,
         categories: {
           connect: categoryIds.map((id) => ({ id })),
         },
