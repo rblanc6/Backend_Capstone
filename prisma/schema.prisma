@@ -51,8 +51,8 @@ model Recipes {
 model Instructions {
   id  Int @id @default(autoincrement())
   instruction String
-  recipeId Int
-  recipe  Recipes @relation(fields: [recipeId], references: [id])
+  recipeId Int?
+  recipe  Recipes? @relation(fields: [recipeId], references: [id])
 }
 
 model Ingredients {
