@@ -57,12 +57,21 @@ router.post(
   async (req, res, next) => {
     try {
       const categoryIds = req.body.categories.map((id) => parseInt(id));
+      const instructionsArray = Array.isArray(req.body.instructions)
+        ? req.body.instructions
+        : [req.body.instructions];
       const recipe = await prisma.recipes.create({
         data: {
           user: { connect: { id: req.user.id } },
           name: req.body.name,
           description: req.body.description,
-          instructions: req.body.instructions,
+          instructions: {
+            createMany: {
+              data: instructionsArray.map((instruction) => ({
+                instruction: instruction,
+              })),
+            },
+          },
           photo: req.body.photo,
           categories: {
             connect: categoryIds.map((id) => ({ id })),

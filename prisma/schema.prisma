@@ -36,7 +36,7 @@ model Recipes {
   id          Int                @id @default(autoincrement())
   name        String
   description String
-  instructions  String
+  instructions  Instructions[]
   ingredient RecipeIngredient[]
   photo       String?
   categories  Categories[]       @relation("RecipeCategories")
@@ -46,6 +46,13 @@ model Recipes {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime?          @updatedAt()
   favoritedBy FavoriteRecipes[]
+}
+
+model Instructions {
+  id  Int @id @default(autoincrement())
+  instruction String
+  recipeId Int
+  recipe  Recipes @relation(fields: [recipeId], references: [id])
 }
 
 model Ingredients {
