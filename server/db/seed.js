@@ -78,10 +78,10 @@ async function seed() {
 
     //Add Instructions, collect their ID's
     const instructions = await Promise.all(
-      [...Array(8)].map((_, i) =>
+      [...Array(600)].map((_, i) =>
         prisma.instructions.create({
           data: {
-            instruction: faker.food.description(),
+            instruction: faker.lorem.sentence({ min: 8, max: 15 }),
           },
         })
       )
@@ -96,11 +96,11 @@ async function seed() {
             name: faker.food.dish(),
             description: faker.food.description(),
             instructions: {
-              connect: {
+              connect: [...Array(3)].map(() => ({
                 id: instructionIds[
                   Math.floor(Math.random() * instructionIds.length)
                 ],
-              },
+              })),
             },
             photo: faker.image.url(),
             categories: {
@@ -127,25 +127,44 @@ async function seed() {
           recipeIds[Math.floor(Math.random() * recipeIds.length)];
 
         // Check if the user has already reviewed this recipe
-        const existingReview = await prisma.reviews.findFirst({
+        // const existingReview = await prisma.reviews.findFirst({
+        //   where: {
+        //     userId: userId,
+        //     recipeId: recipeId,
+        //   },
+        // });
+
+        // if (!existingReview) {
+        //   // If no existing review, create the new review
+        //   return prisma.reviews.create({
+        //     data: {
+        //       review: faker.lorem.paragraph(2),
+        //       rating: faker.number.int(5),
+        //       userId: userId,
+        //       recipeId: recipeId,
+        //     },
+        //   });
+        // }
+        // return null; // Skip if Review Exists
+
+        return prisma.reviews.upsert({
           where: {
+            userId_recipeId: {
+              userId: userId,
+              recipeId: recipeId,
+            },
+          },
+          update: {
+            review: faker.lorem.paragraph(2),
+            rating: faker.number.int(5),
+          },
+          create: {
+            review: faker.lorem.paragraph(2),
+            rating: faker.number.int(5),
             userId: userId,
             recipeId: recipeId,
           },
         });
-
-        if (!existingReview) {
-          // If no existing review, create the new review
-          return prisma.reviews.create({
-            data: {
-              review: faker.lorem.paragraph(2),
-              rating: faker.number.int(5),
-              userId: userId,
-              recipeId: recipeId,
-            },
-          });
-        }
-        return null; // Skip if Review Exists
       })
     );
 
