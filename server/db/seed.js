@@ -119,33 +119,12 @@ async function seed() {
     );
     const recipeIds = recipes.map((recipe) => recipe.id);
 
-    // Add Reviews, collect their ID's.
+    // Add Reviews, Filter out Duplicates, Collect their ID's.
     const reviews = await Promise.all(
       [...Array(50)].map(async (_, i) => {
         const userId = userIds[Math.floor(Math.random() * userIds.length)];
         const recipeId =
           recipeIds[Math.floor(Math.random() * recipeIds.length)];
-
-        // Check if the user has already reviewed this recipe
-        // const existingReview = await prisma.reviews.findFirst({
-        //   where: {
-        //     userId: userId,
-        //     recipeId: recipeId,
-        //   },
-        // });
-
-        // if (!existingReview) {
-        //   // If no existing review, create the new review
-        //   return prisma.reviews.create({
-        //     data: {
-        //       review: faker.lorem.paragraph(2),
-        //       rating: faker.number.int(5),
-        //       userId: userId,
-        //       recipeId: recipeId,
-        //     },
-        //   });
-        // }
-        // return null; // Skip if Review Exists
 
         return prisma.reviews.upsert({
           where: {
@@ -205,39 +184,6 @@ async function seed() {
         });
       })
     );
-
-    // // // Add FavoriteRecipes
-    // // await Promise.all(
-    // //   users.map(async (user) => {
-    // //     const numFavorites = faker.number.int({ min: 3, max: 20 });
-    // //     const favoriteRecipes = [...Array(numFavorites)].map(() => ({
-    // //       userId: user.id,
-    // //       recipeId: recipeIds[Math.floor(Math.random() * recipeIds.length)],
-    // //     }));
-
-    // //     // Insert FavoriteRecipes, ensuring uniqueness (no duplicates)
-    // //     await Promise.all(
-    // //       favoriteRecipes.map(async (favorite) => {
-    // //         // Check if the combination of userId and recipeId already exists
-    // //         const existingFavorite = await prisma.favoriteRecipes.findFirst({
-    // //           where: {
-    // //             AND: [
-    // //               { userId: favorite.userId },
-    // //               { recipeId: favorite.recipeId },
-    // //             ],
-    // //           },
-    // //         });
-
-    // //         if (!existingFavorite) {
-    // //           // If no existing favorite, create the new favorite
-    // //           await prisma.favoriteRecipes.create({
-    // //             data: favorite,
-    // //           });
-    // //         }
-    // //       })
-    // //     );
-    //   })
-    // );
 
     console.log("Database is seeded.");
   } catch (err) {

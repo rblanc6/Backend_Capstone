@@ -33,7 +33,6 @@ const checkRole = (roles) => (req, res, next) => {
   next();
 };
 
-// TO DO
 // View List of All Recipes
 router.get(
   "/recipes",
@@ -84,6 +83,7 @@ router.post(
     }
   }
 );
+
 // Edit Recipes
 router.put(
   "/recipe/:id",
@@ -95,7 +95,6 @@ router.put(
       const recipe = await prisma.recipes.update({
         where: {
           id: parseInt(req.params.id),
-          // creatorId: req.body.creatorId,
         },
         data: {
           name: req.body.name,
@@ -159,10 +158,6 @@ router.delete(
     }
   }
 );
-
-// Add Photo to Recipe
-
-// Administrators should be able to add and modify relevant information on an item. It is up to you to decide what information is relevant, necessary, or otherwise.
 
 // Get All Users as Admin
 router.get(
