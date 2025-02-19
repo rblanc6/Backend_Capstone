@@ -34,6 +34,20 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+// Get an Individual Recipe
+router.get("/:id", async (req, res, next) => {
+  try {
+    const recipe = await prisma.recipes.findUnique({
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
+    res.send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get A Logged-in User's Recipes
 router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   try {

@@ -78,9 +78,9 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
 });
 
 // Get an Individual Review
-router.get("/review/:id", async (req, res, next) => {
+router.get("/:id", async (req, res, next) => {
   try {
-    const review = await prisma.reviews.findFirst({
+    const review = await prisma.reviews.findUnique({
       where: {
         id: parseInt(req.params.id),
       },
