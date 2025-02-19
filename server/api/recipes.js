@@ -56,18 +56,32 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
     const instructionsArray = Array.isArray(req.body.instructions)
       ? req.body.instructions
       : [req.body.instructions];
+    console.log(instructionsArray);
+    const instructIds = [];
+    for (const instruct of instructionsArray) {
+      console.log(instruct)
+      const result = await prisma.instructions.upsert({
+        where: { instruction: instruct },
+        update: {},
+        create: { instruction: instruct },
+      });
+      instructIds.push({ id: result.id });
+    }
 
     const recipe = await prisma.recipes.create({
       data: {
         user: { connect: { id: req.user.id } },
         name: req.body.name,
         description: req.body.description,
+        // instructions: {
+        //   createMany: {
+        //     data: instructionsArray.map((instruction) => ({
+        //       instruction: instruction,
+        //     })),
+        //   },
+        // },
         instructions: {
-          createMany: {
-            data: instructionsArray.map((instruction) => ({
-              instruction: instruction,
-            })),
-          },
+          connect: instructIds,
         },
         photo: req.body.photo,
         categories: {
@@ -85,6 +99,19 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
 router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const categoryIds = req.body.categories.map((id) => parseInt(id));
+    const instructionsArray = Array.isArray(req.body.instructions)
+      ? req.body.instructions
+      : [req.body.instructions];
+    console.log(instructionsArray);
+    const instructIds = [];
+    for (const instruct of instructionsArray) {
+      const result = await prisma.instructions.upsert({
+        where: { instruction: instruct },
+        update: {},
+        create: { instruction: instruct },
+      });
+      instructIds.push({ id: result.id });
+    }
     const recipe = await prisma.recipes.update({
       where: {
         id: parseInt(req.params.id),
@@ -93,6 +120,9 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
       data: {
         name: req.body.name,
         description: req.body.description,
+        instructions: {
+          connect: instructIds,
+        },
         photo: req.body.photo,
         categories: {
           connect: categoryIds.map((id) => ({ id })),
