@@ -59,7 +59,7 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
     console.log(instructionsArray);
     const instructIds = [];
     for (const instruct of instructionsArray) {
-      console.log(instruct)
+      console.log(instruct);
       const result = await prisma.instructions.upsert({
         where: { instruction: instruct },
         update: {},
@@ -73,13 +73,6 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
         user: { connect: { id: req.user.id } },
         name: req.body.name,
         description: req.body.description,
-        // instructions: {
-        //   createMany: {
-        //     data: instructionsArray.map((instruction) => ({
-        //       instruction: instruction,
-        //     })),
-        //   },
-        // },
         instructions: {
           connect: instructIds,
         },
