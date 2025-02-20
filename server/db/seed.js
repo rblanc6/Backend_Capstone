@@ -38,35 +38,25 @@ async function seed() {
     );
     const categoryIds = categories.map((category) => category.id);
 
-    // Add Ingredients
-    // const ingredients = await Promise.all(
-    //   [...Array(50)].map(() =>
-    //     prisma.ingredients.create({
-    //       data: {
-    //         name: faker.food.ingredient(),
-    //       },
-    //     })
-    //   )
-    // );
     const ingredientNames = new Set();
 
-const ingredients = await Promise.all(
-  [...Array(50)].map(async () => {
-    let name;
-    // Ensure unique name by retrying if name is already in the set
-    do {
-      name = faker.food.ingredient();
-    } while (ingredientNames.has(name));
-    
-    ingredientNames.add(name);
+    const ingredients = await Promise.all(
+      [...Array(50)].map(async () => {
+        let name;
+        // Ensure unique name by retrying if name is already in the set
+        do {
+          name = faker.food.ingredient();
+        } while (ingredientNames.has(name));
 
-    return prisma.ingredients.create({
-      data: {
-        name,
-      },
-    });
-  })
-);
+        ingredientNames.add(name);
+
+        return prisma.ingredients.create({
+          data: {
+            name,
+          },
+        });
+      })
+    );
     const ingredientIds = ingredients.map((ingredient) => ingredient.id);
 
     // Add Units
@@ -121,7 +111,11 @@ const ingredients = await Promise.all(
                 ],
               })),
             },
-            photo: faker.image.url(),
+            photo: faker.image.urlLoremFlickr({
+              width: 400,
+              height: 400,
+              category: "food",
+            }),
             categories: {
               connect: {
                 id: categoryIds[Math.floor(Math.random() * categoryIds.length)],
