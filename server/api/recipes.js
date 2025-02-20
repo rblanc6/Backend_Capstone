@@ -33,6 +33,37 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+// Get all recipe ingredients
+router.get("/ingredients", async (req, res, next) => {
+  try {
+    const recipes = await prisma.recipeIngredient.findMany();
+    res.send(recipes);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get all recipe instructions
+router.get("/instructions", async (req, res, next) => {
+  try {
+    const recipes = await prisma.instructions.findMany();
+    res.send(recipes);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get all recipe categories
+router.get("/categories", async (req, res, next) => {
+  try {
+    const recipes = await prisma.categories.findMany();
+    res.send(recipes);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 // Get an Individual Recipe
 router.get("/:id", async (req, res, next) => {
   try {
