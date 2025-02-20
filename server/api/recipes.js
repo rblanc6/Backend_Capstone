@@ -15,7 +15,6 @@ const isLoggedIn = async (req, res, next) => {
   if (!token) return next();
   try {
     const { id } = jwt.verify(token, JWT);
-    console.log(id);
     const user = await getUserId(id);
     req.user = user;
     next();
@@ -70,10 +69,8 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
     const instructionsArray = Array.isArray(req.body.instructions)
       ? req.body.instructions
       : [req.body.instructions];
-    console.log(instructionsArray);
     const instructIds = [];
     for (const instruct of instructionsArray) {
-      console.log(instruct);
       const result = await prisma.instructions.upsert({
         where: { instruction: instruct },
         update: {},
@@ -81,12 +78,37 @@ router.post("/recipe", isLoggedIn, async (req, res, next) => {
       });
       instructIds.push({ id: result.id });
     }
-
+    const ingredientsData = req.body.ingredients.map(async (ingredient) => {
+      const { name, quantity, unitName } = ingredient;
+      const unit = await prisma.units.upsert({
+        where: { name: unitName },
+        update: {},
+        create: { name: unitName },
+      });
+      const ingredientRecord = await prisma.ingredients.upsert({
+        where: { name: name },
+        update: {},
+        create: { name: name },
+      });
+      return {
+        ingredientId: ingredientRecord.id,
+        quantity: quantity,
+        unitId: unit.id,
+      };
+    });
+    const ingredientData = await Promise.all(ingredientsData);
     const recipe = await prisma.recipes.create({
       data: {
         user: { connect: { id: req.user.id } },
         name: req.body.name,
         description: req.body.description,
+        ingredient: {
+          create: ingredientData.map((ingredient) => ({
+            ingredientId: ingredient.ingredientId,
+            quantity: ingredient.quantity,
+            unitId: ingredient.unitId,
+          })),
+        },
         instructions: {
           connect: instructIds,
         },
@@ -109,7 +131,6 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
     const instructionsArray = Array.isArray(req.body.instructions)
       ? req.body.instructions
       : [req.body.instructions];
-    console.log(instructionsArray);
     const instructIds = [];
     for (const instruct of instructionsArray) {
       const result = await prisma.instructions.upsert({
@@ -119,6 +140,25 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
       });
       instructIds.push({ id: result.id });
     }
+    const ingredientsData = req.body.ingredients.map(async (ingredient) => {
+      const { name, quantity, unitName } = ingredient;
+      const unit = await prisma.units.upsert({
+        where: { name: unitName },
+        update: {},
+        create: { name: unitName },
+      });
+      const ingredientRecord = await prisma.ingredients.upsert({
+        where: { name: name },
+        update: {},
+        create: { name: name },
+      });
+      return {
+        ingredientId: ingredientRecord.id,
+        quantity: quantity,
+        unitId: unit.id,
+      };
+    });
+    const ingredientData = await Promise.all(ingredientsData);
     const recipe = await prisma.recipes.update({
       where: {
         id: parseInt(req.params.id),
@@ -127,6 +167,13 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
       data: {
         name: req.body.name,
         description: req.body.description,
+        ingredient: {
+          create: ingredientData.map((ingredient) => ({
+            ingredientId: ingredient.ingredientId,
+            quantity: ingredient.quantity,
+            unitId: ingredient.unitId,
+          })),
+        },
         instructions: {
           connect: instructIds,
         },

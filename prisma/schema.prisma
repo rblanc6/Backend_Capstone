@@ -56,13 +56,13 @@ model Instructions {
 
 model Ingredients {
   id               Int                @id @default(autoincrement())
-  name             String
+  name             String @unique
   recipeIngredient RecipeIngredient[]
 }
 
 model Units {
   id               Int                @id @default(autoincrement())
-  name             String
+  name             String @unique
   recipeIngredient RecipeIngredient[]
 }
 
