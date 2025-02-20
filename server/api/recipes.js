@@ -23,6 +23,27 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
+router.get("/:id/details", async (req, res, next) => {
+  try {
+    const recipeDetails = await prisma.recipes.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        ingredient: {
+          include: {
+            ingredient: true,
+            unit: true,
+          },
+        },
+        instructions: true,
+        categories: true,
+      },
+    });
+    res.send(recipeDetails);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get all Recipes
 router.get("/", async (req, res, next) => {
   try {
@@ -62,7 +83,6 @@ router.get("/categories", async (req, res, next) => {
     next(error);
   }
 });
-
 
 // Get an Individual Recipe
 router.get("/:id", async (req, res, next) => {
