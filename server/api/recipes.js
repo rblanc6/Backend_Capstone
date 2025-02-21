@@ -115,7 +115,7 @@ router.get("/:id/ingredients", async (req, res, next) => {
         },
       },
     });
-    res.send(recipe);
+    res.send(recipe.ingredient);
   } catch (error) {
     next(error);
   }
@@ -130,7 +130,7 @@ router.get("/:id/instructions", async (req, res, next) => {
       },
       include: { instructions: true },
     });
-    res.send(recipe);
+    res.send(recipe.instructions);
   } catch (error) {
     next(error);
   }
@@ -145,7 +145,7 @@ router.get("/:id/categories", async (req, res, next) => {
       },
       include: { categories: true },
     });
-    res.send(recipe);
+    res.send(recipe.categories);
   } catch (error) {
     next(error);
   }
