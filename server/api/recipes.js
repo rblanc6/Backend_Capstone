@@ -23,62 +23,10 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-// Get Individual Recipe Details
-router.get("/:id/details", async (req, res, next) => {
-  try {
-    const recipeDetails = await prisma.recipes.findUnique({
-      where: { id: parseInt(req.params.id) },
-      include: {
-        ingredient: {
-          include: {
-            ingredient: true,
-            unit: true,
-          },
-        },
-        instructions: true,
-        categories: true,
-      },
-    });
-    res.send(recipeDetails);
-  } catch (error) {
-    next(error);
-  }
-});
-
 // Get all Recipes
 router.get("/", async (req, res, next) => {
   try {
     const recipes = await prisma.recipes.findMany();
-    res.send(recipes);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get all recipe ingredients
-router.get("/ingredients", async (req, res, next) => {
-  try {
-    const recipes = await prisma.recipeIngredient.findMany();
-    res.send(recipes);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get all recipe instructions
-router.get("/instructions", async (req, res, next) => {
-  try {
-    const recipes = await prisma.instructions.findMany();
-    res.send(recipes);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get all recipe categories
-router.get("/categories", async (req, res, next) => {
-  try {
-    const recipes = await prisma.categories.findMany();
     res.send(recipes);
   } catch (error) {
     next(error);
@@ -104,58 +52,6 @@ router.get("/:id", async (req, res, next) => {
       },
     });
     res.send(recipe);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get an Individual Ingredient
-router.get("/:id/ingredients", async (req, res, next) => {
-  try {
-    const recipe = await prisma.recipes.findUnique({
-      where: {
-        id: parseInt(req.params.id),
-      },
-      include: {
-        ingredient: {
-          include: {
-            ingredient: true,
-            unit: true,
-          },
-        },
-      },
-    });
-    res.send(recipe.ingredient);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get an Individual Instruction
-router.get("/:id/instructions", async (req, res, next) => {
-  try {
-    const recipe = await prisma.recipes.findUnique({
-      where: {
-        id: parseInt(req.params.id),
-      },
-      include: { instructions: true },
-    });
-    res.send(recipe.instructions);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get an Individual Category
-router.get("/:id/categories", async (req, res, next) => {
-  try {
-    const recipe = await prisma.recipes.findUnique({
-      where: {
-        id: parseInt(req.params.id),
-      },
-      include: { categories: true },
-    });
-    res.send(recipe.categories);
   } catch (error) {
     next(error);
   }
