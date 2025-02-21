@@ -99,6 +99,58 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+// Get an Individual Ingredient
+router.get("/:id/ingredients", async (req, res, next) => {
+  try {
+    const recipe = await prisma.recipes.findUnique({
+      where: {
+        id: parseInt(req.params.id),
+      },
+      include: {
+        ingredient: {
+          include: {
+            ingredient: true,
+            unit: true,
+          },
+        },
+      },
+    });
+    res.send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get an Individual Instruction
+router.get("/:id/instructions", async (req, res, next) => {
+  try {
+    const recipe = await prisma.recipes.findUnique({
+      where: {
+        id: parseInt(req.params.id),
+      },
+      include: { instructions: true },
+    });
+    res.send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get an Individual Category
+router.get("/:id/categories", async (req, res, next) => {
+  try {
+    const recipe = await prisma.recipes.findUnique({
+      where: {
+        id: parseInt(req.params.id),
+      },
+      include: { categories: true },
+    });
+    res.send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get A Logged-in User's Recipes
 router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   try {
