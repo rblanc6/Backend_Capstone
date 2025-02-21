@@ -92,6 +92,16 @@ router.get("/:id", async (req, res, next) => {
       where: {
         id: parseInt(req.params.id),
       },
+      include: {
+        ingredient: {
+          include: {
+            ingredient: true,
+            unit: true,
+          },
+        },
+        instructions: true,
+        categories: true,
+      },
     });
     res.send(recipe);
   } catch (error) {
