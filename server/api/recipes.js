@@ -49,6 +49,27 @@ router.get("/:id", async (req, res, next) => {
         },
         instructions: true,
         categories: true,
+        review: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+            comments: {
+              select: {
+                comment: true,
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
     res.send(recipe);

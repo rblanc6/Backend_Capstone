@@ -36,6 +36,22 @@ const getUserId = async (id) => {
     where: {
       id,
     },
+    include: {
+      reviews: true,
+      comments: true,
+      recipes: true,
+      favorites: {
+        include: {
+          recipe: {
+            select: {
+              name: true,
+              photo: true,
+              description: true,
+            },
+          },
+        },
+      },
+    },
   });
   return response;
 };
