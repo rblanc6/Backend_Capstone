@@ -82,6 +82,7 @@ model FavoriteRecipes {
   user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipeId Int
   recipe   Recipes @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  favorite  Boolean   @default(true)
 
   @@id(name: "favoriteId", [userId, recipeId])
 }

@@ -23,6 +23,7 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
+// Get Individual Recipe Details
 router.get("/:id/details", async (req, res, next) => {
   try {
     const recipeDetails = await prisma.recipes.findUnique({
