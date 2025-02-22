@@ -269,6 +269,16 @@ router.get("/favorites/:userId", isLoggedIn, async (req, res, next) => {
   }
 });
 
+// Get all Categories
+router.get("/categories", async (req, res, next) => {
+  try {
+    const categories = await prisma.categories.findMany();
+    res.status(200).json(categories);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Delete a Logged-in User's Favorite Recipe
 router.delete("/favorite/:recipeId", isLoggedIn, async (req, res, next) => {
   try {
