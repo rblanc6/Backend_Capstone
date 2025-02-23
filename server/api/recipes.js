@@ -34,7 +34,7 @@ router.get("/", async (req, res, next) => {
 });
 
 // Get an Individual Recipe
-router.get("/:id", async (req, res, next) => {
+router.get("/recipe/:id", async (req, res, next) => {
   try {
     const recipe = await prisma.recipes.findUnique({
       where: {
