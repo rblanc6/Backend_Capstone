@@ -34,7 +34,7 @@ router.get("/", async (req, res, next) => {
 });
 
 // Get an Individual Recipe
-router.get("/:id", async (req, res, next) => {
+router.get("/recipe/:id", async (req, res, next) => {
   try {
     const recipe = await prisma.recipes.findUnique({
       where: {
@@ -264,6 +264,16 @@ router.get("/favorites/:userId", isLoggedIn, async (req, res, next) => {
       },
     });
     res.send(recipes);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get all Categories
+router.get("/categories", async (req, res, next) => {
+  try {
+    const categories = await prisma.categories.findMany();
+    res.status(200).json(categories);
   } catch (error) {
     next(error);
   }
