@@ -284,12 +284,14 @@ router.post("/favorite", isLoggedIn, async (req, res, next) => {
   }
 });
 // Get All Logged-in User's Favorite Recipes
-router.get("/favorites/:userId", isLoggedIn, async (req, res, next) => {
+router.get("/favorites/:recipeId", isLoggedIn, async (req, res, next) => {
   try {
-    const userId = req.params.userId;
+    const { recipeId } = req.params;
+    console.log(recipeId);
     const recipes = await prisma.favoriteRecipes.findMany({
       where: {
-        userId: userId,
+        recipeId: parseInt(recipeId),
+        userId: req.user.id,
       },
     });
     res.send(recipes);
