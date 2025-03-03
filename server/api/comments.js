@@ -34,6 +34,7 @@ router.post("/comment", isLoggedIn, async (req, res, next) => {
         review: { connect: { id: parseInt(req.body.review) } },
         comment: req.body.comment,
       },
+      
     });
     res.status(201).send(comment);
   } catch (error) {

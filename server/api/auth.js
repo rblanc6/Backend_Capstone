@@ -50,7 +50,7 @@ router.post("/login", async (req, res, next) => {
     const match = await bcrypt.compare(password, user.password);
     if (match) {
       const token = setToken(user.id);
-      res.status(200).json({ token, role: user.role });
+      res.status(200).json({ token, role: user.role, user: user });
     } else {
       res.status(403).json({ message: "Username and Password do not match" });
     }
