@@ -112,155 +112,90 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
   }
 });
 // Create a Recipe
-router.post(
-  "/recipe",
-  isLoggedIn,
-  upload.single("photo"),
-  async (req, res, next) => {
-    console.log(req.body); // Other form fields
-    console.log(req.file);
-    try {
-      const categoryIds = req.body.category
-        ? JSON.parse(req.body.category).map((id) => parseInt(id))
-        : [];
-      if (categoryIds === 0) {
-        return res.status(400).send({ error: "Categories are required" });
-      }
-      const instructionsArray = req.body.instructions
-        ? JSON.parse(req.body.instructions)
-        : [];
-      const instructIds = [];
-      for (const instruct of instructionsArray) {
-        const result = await prisma.instructions.upsert({
-          where: { instruction: instruct },
-          update: {},
-          create: { instruction: instruct },
-        });
-        instructIds.push({ id: result.id });
-      }
-      const ingredientsData = req.body.ingredient
-        ? JSON.parse(req.body.ingredient).map(async (ingredient) => {
-            const { name, quantity, unitName } = ingredient;
-            const unit = await prisma.units.upsert({
-              where: { name: unitName },
-              update: {},
-              create: { name: unitName },
-            });
-            const ingredientRecord = await prisma.ingredients.upsert({
-              where: { name: name },
-              update: {},
-              create: { name: name },
-            });
-            return {
-              ingredientId: ingredientRecord.id,
-              quantity: quantity,
-              unitId: unit.id,
-            };
-          })
-        : [];
-      const ingredientData = await Promise.all(ingredientsData);
+// router.post(
+//   "/recipe",
+//   isLoggedIn,
+//   upload.single("photo"),
+//   async (req, res, next) => {
+//     console.log(req.body); // Other form fields
+//     console.log(req.file);
+//     try {
+//       const categoryIds = req.body.category
+//         ? JSON.parse(req.body.category).map((id) => parseInt(id))
+//         : [];
+//       if (categoryIds === 0) {
+//         return res.status(400).send({ error: "Categories are required" });
+//       }
+//       const instructionsArray = req.body.instructions
+//         // ? JSON.parse(req.body.instructions)
+//         // : [];
+//       const instructIds = [];
+//       for (const instruct of instructionsArray) {
+//         const result = await prisma.instructions.upsert({
+//           where: { instruction: instruct },
+//           update: {},
+//           create: { instruction: instruct },
+//         });
+//         instructIds.push({ id: result.id });
+//       }
+//       const ingredientsData = req.body.ingredient
+//         ? JSON.parse(req.body.ingredient).map(async (ingredient) => {
+//             const { name, quantity, unitName } = ingredient;
+//             const unit = await prisma.units.upsert({
+//               where: { name: unitName },
+//               update: {},
+//               create: { name: unitName },
+//             });
+//             const ingredientRecord = await prisma.ingredients.upsert({
+//               where: { name: name },
+//               update: {},
+//               create: { name: name },
+//             });
+//             return {
+//               ingredientId: ingredientRecord.id,
+//               quantity: quantity,
+//               unitId: unit.id,
+//             };
+//           })
+//         : [];
+//       const ingredientData = await Promise.all(ingredientsData);
 
-      // Create the recipe with the parsed data
-      const recipe = await prisma.recipes.create({
-        data: {
-          user: { connect: { id: req.user.id } },
-          name: req.body.name,
-          description: req.body.description,
-          ingredient: {
-            create: ingredientData.map((ingredient) => ({
-              ingredientId: ingredient.ingredientId,
-              quantity: ingredient.quantity,
-              unitId: ingredient.unitId,
-            })),
-          },
-          instructions: {
-            connect: instructIds,
-          },
-          photo: req.file,
-          categories: {
-            connect: categoryIds.map((id) => ({ id })),
-          },
-        },
-      });
-      res.status(201).send(recipe);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-// // Update a Logged-in User's Recipe
-// router.put("/:id", isLoggedIn, async (req, res, next) => {
-//   try {
-//     const categoryIds = req.body.categories.map((id) => parseInt(id));
-//     const instructionsArray = Array.isArray(req.body.instructions)
-//       ? req.body.instructions
-//       : [req.body.instructions];
-//     const instructIds = [];
-//     for (const instruct of instructionsArray) {
-//       const result = await prisma.instructions.upsert({
-//         where: { instruction: instruct },
-//         update: {},
-//         create: { instruction: instruct },
+//       // Create the recipe with the parsed data
+//       const recipe = await prisma.recipes.create({
+//         data: {
+//           user: { connect: { id: req.user.id } },
+//           name: req.body.name,
+//           description: req.body.description,
+//           ingredient: {
+//             create: ingredientData.map((ingredient) => ({
+//               ingredientId: ingredient.ingredientId,
+//               quantity: ingredient.quantity,
+//               unitId: ingredient.unitId,
+//             })),
+//           },
+//           instructions: {
+//             connect: instructIds,
+//           },
+//           photo: req.file,
+//           categories: {
+//             connect: categoryIds.map((id) => ({ id })),
+//           },
+//         },
 //       });
-//       instructIds.push({ id: result.id });
+//       res.status(201).send(recipe);
+//     } catch (error) {
+//       next(error);
 //     }
-//     const ingredientsData = req.body.ingredients.map(async (ingredient) => {
-//       const { name, quantity, unitName } = ingredient;
-//       const unit = await prisma.units.upsert({
-//         where: { name: unitName },
-//         update: {},
-//         create: { name: unitName },
-//       });
-//       const ingredientRecord = await prisma.ingredients.upsert({
-//         where: { name: name },
-//         update: {},
-//         create: { name: name },
-//       });
-//       return {
-//         ingredientId: ingredientRecord.id,
-//         quantity: quantity,
-//         unitId: unit.id,
-//       };
-//     });
-//     const ingredientData = await Promise.all(ingredientsData);
-//     const recipe = await prisma.recipes.update({
-//       where: {
-//         id: parseInt(req.params.id),
-//         creatorId: req.body.creatorId,
-//       },
-//       data: {
-//         name: req.body.name,
-//         description: req.body.description,
-//         ingredient: {
-//           create: ingredientData.map((ingredient) => ({
-//             ingredientId: ingredient.ingredientId,
-//             quantity: ingredient.quantity,
-//             unitId: ingredient.unitId,
-//           })),
-//         },
-//         instructions: {
-//           connect: instructIds,
-//         },
-//         photo: req.body.photo,
-//         categories: {
-//           connect: categoryIds.map((id) => ({ id })),
-//         },
-//       },
-//     });
-//     if (!recipe) {
-//       return res.status(404).send("Recipe not found.");
-//     }
-//     res.send(recipe);
-//   } catch (error) {
-//     next(error);
 //   }
-// });
+// );
 
-// Update a Logged-in User's Recipe
-router.patch("/:id", isLoggedIn, async (req, res, next) => {
+// Create a Recipe
+router.post("/recipe", isLoggedIn, async (req, res, next) => {
   try {
-    const categoryIds = req.body.categories ? req.body.categories.map((id) => parseInt(id)) : [];
-    const instructionsArray = req.body.instructions ? (Array.isArray(req.body.instructions) ? req.body.instructions : [req.body.instructions]) : [];
+    const categoryIds = req.body.categories.map((id) => parseInt(id));
+    const instructionsArray = Array.isArray(req.body.instructions)
+      ? req.body.instructions
+      : [req.body.instructions];
     const instructIds = [];
     for (const instruct of instructionsArray) {
       const result = await prisma.instructions.upsert({
@@ -270,7 +205,8 @@ router.patch("/:id", isLoggedIn, async (req, res, next) => {
       });
       instructIds.push({ id: result.id });
     }
-    const ingredientsData = req.body.ingredients ? req.body.ingredients.map(async (ingredient) => {
+
+    const ingredientsData = req.body.ingredients.map(async (ingredient) => {
       const { name, quantity, unitName } = ingredient;
       const unit = await prisma.units.upsert({
         where: { name: unitName },
@@ -287,27 +223,107 @@ router.patch("/:id", isLoggedIn, async (req, res, next) => {
         quantity: quantity,
         unitId: unit.id,
       };
-    }) : [];
+    });
     const ingredientData = await Promise.all(ingredientsData);
-    
+    const recipe = await prisma.recipes.create({
+      data: {
+        user: { connect: { id: req.user.id } },
+        name: req.body.name,
+        description: req.body.description,
+        ingredient: {
+          create: ingredientData.map((ingredient) => ({
+            ingredientId: ingredient.ingredientId,
+            quantity: ingredient.quantity,
+            unitId: ingredient.unitId,
+          })),
+        },
+        instructions: {
+          connect: instructIds,
+        },
+        photo: req.body.photo,
+        categories: {
+          connect: categoryIds.map((id) => ({ id })),
+        },
+      },
+    });
+    res.status(201).send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update a Logged-in User's Recipe
+router.put("/:id", isLoggedIn, async (req, res, next) => {
+  try {
+    // const categoryIds = req.body.categories.map((id) => parseInt(id));
+    const categoryIds = Array.isArray(req.body.categories)
+      ? req.body.categories.map((id) => parseInt(id))
+      : [];
+    const instructionsArray = Array.isArray(req.body.instructions)
+      ? req.body.instructions
+      : [req.body.instructions];
+    const instructIds = [];
+    for (const instruct of instructionsArray) {
+      const instructionText =
+        typeof instruct === "object" &&
+        instruct !== null &&
+        instruct.instruction
+          ? instruct.instruction
+          : instruct; // If instruct is not an object, treat it as a string
+
+      // Ensure instructionText is a valid string before proceeding
+      if (!instructionText || typeof instructionText !== "string") {
+        console.error("Invalid instruction:", instruct);
+        continue; // Skip if invalid
+      }
+      const result = await prisma.instructions.upsert({
+        where: { instruction: instructionText },
+        update: {},
+        create: { instruction: instructionText },
+      });
+      instructIds.push({ id: result.id });
+    }
+    const ingredientsData = req.body.ingredients.map(async (ingredient) => {
+      const { name, quantity, unitName } = ingredient;
+      const unit = await prisma.units.upsert({
+        where: { name: unitName },
+        update: {},
+        create: { name: unitName },
+      });
+      const ingredientRecord = await prisma.ingredients.upsert({
+        where: { name: name },
+        update: {},
+        create: { name: name },
+      });
+      return {
+        ingredientId: ingredientRecord.id,
+        quantity: quantity,
+        unitId: unit.id,
+      };
+    });
+    const ingredientData = await Promise.all(ingredientsData);
     const recipe = await prisma.recipes.update({
       where: {
         id: parseInt(req.params.id),
         creatorId: req.body.creatorId,
       },
       data: {
-        name: req.body.name || undefined,
-        description: req.body.description || undefined,
-        ingredient: ingredientData.length ? {
+        name: req.body.name,
+        description: req.body.description,
+        ingredient: {
           create: ingredientData.map((ingredient) => ({
             ingredientId: ingredient.ingredientId,
             quantity: ingredient.quantity,
             unitId: ingredient.unitId,
           })),
-        } : undefined,
-        instructions: instructIds.length ? { connect: instructIds } : undefined,
-        photo: req.body.photo || undefined,
-        categories: categoryIds.length ? { connect: categoryIds.map((id) => ({ id })) } : undefined,
+        },
+        instructions: {
+          connect: instructIds,
+        },
+        photo: req.body.photo,
+        categories: {
+          connect: categoryIds.map((id) => ({ id })),
+        },
       },
     });
     if (!recipe) {
@@ -319,6 +335,80 @@ router.patch("/:id", isLoggedIn, async (req, res, next) => {
   }
 });
 
+// Update a Logged-in User's Recipe
+// router.patch("/recipe/:id", isLoggedIn, async (req, res, next) => {
+//   try {
+//     const categoryIds = req.body.categories
+//       ? req.body.categories.map((id) => parseInt(id))
+//       : [];
+//     const instructionsArray = req.body.instructions
+//       ? Array.isArray(req.body.instructions)
+//         ? req.body.instructions
+//         : [req.body.instructions]
+//       : [];
+//     const instructIds = [];
+//     for (const instruct of instructionsArray) {
+//       const result = await prisma.instructions.upsert({
+//         where: { instruction: instruct },
+//         update: {},
+//         create: { instruction: instruct },
+//       });
+//       instructIds.push({ id: result.id });
+//     }
+//     const ingredientsData = req.body.ingredients
+//       ? req.body.ingredients.map(async (ingredient) => {
+//           const { name, quantity, unitName } = ingredient;
+//           const unit = await prisma.units.upsert({
+//             where: { name: unitName },
+//             update: {},
+//             create: { name: unitName },
+//           });
+//           const ingredientRecord = await prisma.ingredients.upsert({
+//             where: { name: name },
+//             update: {},
+//             create: { name: name },
+//           });
+//           return {
+//             ingredientId: ingredientRecord.id,
+//             quantity: quantity,
+//             unitId: unit.id,
+//           };
+//         })
+//       : [];
+//     const ingredientData = await Promise.all(ingredientsData);
+
+//     const recipe = await prisma.recipes.update({
+//       where: {
+//         id: parseInt(req.params.id),
+//         creatorId: req.body.creatorId,
+//       },
+//       data: {
+//         name: req.body.name || undefined,
+//         description: req.body.description || undefined,
+//         ingredient: ingredientData.length
+//           ? {
+//               create: ingredientData.map((ingredient) => ({
+//                 ingredientId: ingredient.ingredientId,
+//                 quantity: ingredient.quantity,
+//                 unitId: ingredient.unitId,
+//               })),
+//             }
+//           : undefined,
+//         instructions: instructIds.length ? { connect: instructIds } : undefined,
+//         photo: req.body.photo || undefined,
+//         categories: categoryIds.length
+//           ? { connect: categoryIds.map((id) => ({ id })) }
+//           : undefined,
+//       },
+//     });
+//     if (!recipe) {
+//       return res.status(404).send("Recipe not found.");
+//     }
+//     res.send(recipe);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 // Remove a Category from a Logged-in User's Recipe
 router.put("/removecategory/:id", isLoggedIn, async (req, res, next) => {
