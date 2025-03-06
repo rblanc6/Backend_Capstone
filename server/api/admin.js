@@ -122,16 +122,31 @@ router.put(
   checkRole(["ADMIN"]),
   async (req, res, next) => {
     try {
-      const categoryIds = req.body.categories.map((id) => parseInt(id));
+      const removedIngredientIds = req.body.removedIngredientIds || [];
+      const removedInstructionIds = req.body.removedInstructionIds || [];
+
+      const categoryIds = Array.isArray(req.body.categories)
+        ? req.body.categories.map((id) => parseInt(id))
+        : [];
       const instructionsArray = Array.isArray(req.body.instructions)
         ? req.body.instructions
         : [req.body.instructions];
       const instructIds = [];
       for (const instruct of instructionsArray) {
+        const instructionText =
+          typeof instruct === "object" &&
+          instruct !== null &&
+          instruct.instruction
+            ? instruct.instruction
+            : instruct;
+        if (!instructionText || typeof instructionText !== "string") {
+          console.error("Invalid instruction:", instruct);
+          continue;
+        }
         const result = await prisma.instructions.upsert({
-          where: { instruction: instruct },
+          where: { instruction: instructionText },
           update: {},
-          create: { instruction: instruct },
+          create: { instruction: instructionText },
         });
         instructIds.push({ id: result.id });
       }
@@ -157,11 +172,15 @@ router.put(
       const recipe = await prisma.recipes.update({
         where: {
           id: parseInt(req.params.id),
+          creatorId: req.body.creatorId,
         },
         data: {
           name: req.body.name,
           description: req.body.description,
           ingredient: {
+            deleteMany: {
+              id: { in: removedIngredientIds },
+            },
             create: ingredientData.map((ingredient) => ({
               ingredientId: ingredient.ingredientId,
               quantity: ingredient.quantity,
@@ -170,6 +189,11 @@ router.put(
           },
           instructions: {
             connect: instructIds,
+
+            disconnect:
+              removedInstructionIds.length > 0
+                ? removedInstructionIds.map((id) => ({ id: parseInt(id) }))
+                : [],
           },
           photo: req.body.photo,
           categories: {
