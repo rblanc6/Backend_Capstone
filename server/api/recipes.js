@@ -192,7 +192,9 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
 // Create a Recipe
 router.post("/recipe", isLoggedIn, async (req, res, next) => {
   try {
-    const categoryIds = req.body.categories.map((id) => parseInt(id));
+    const categoryIds = Array.isArray(req.body.categories)
+      ? req.body.categories.map((id) => parseInt(id))
+      : [];
     const instructionsArray = Array.isArray(req.body.instructions)
       ? req.body.instructions
       : [req.body.instructions];
@@ -259,6 +261,7 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const removedIngredientIds = req.body.removedIngredientIds || [];
     const removedInstructionIds = req.body.removedInstructionIds || [];
+    const removedCategoryIds = req.body.removedCategoryIds || [];
 
     const categoryIds = Array.isArray(req.body.categories)
       ? req.body.categories.map((id) => parseInt(id))
@@ -324,7 +327,6 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
         },
         instructions: {
           connect: instructIds,
-
           disconnect:
             removedInstructionIds.length > 0
               ? removedInstructionIds.map((id) => ({ id: parseInt(id) }))
@@ -333,6 +335,10 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
         photo: req.body.photo,
         categories: {
           connect: categoryIds.map((id) => ({ id })),
+          disconnect:
+            removedCategoryIds.length > 0
+              ? removedCategoryIds.map((id) => ({ id: parseInt(id) }))
+              : [],
         },
       },
     });
