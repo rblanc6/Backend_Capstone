@@ -4,8 +4,28 @@ require("dotenv").config();
 const JWT = process.env.JWT || "1234";
 const { prisma } = require("../db/common");
 const { getUserId } = require("../db/db");
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+// const multer = require("multer");
+// const upload = multer({ dest: "uploads/" });
+require("dotenv").config();
+const cloudinary = require("cloudinary").v2;
+const Multer = require("multer");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+async function handleUpload(file) {
+  const res = await cloudinary.uploader.upload(file, {
+    resource_type: "auto",
+  });
+  return res;
+}
+
+const storage = new Multer.memoryStorage();
+const upload = Multer({
+  storage,
+});
 
 // Authorize the Token with Id
 const isLoggedIn = async (req, res, next) => {
@@ -27,7 +47,12 @@ const isLoggedIn = async (req, res, next) => {
 // Get all Recipes
 router.get("/", async (req, res, next) => {
   try {
-    const recipes = await prisma.recipes.findMany();
+    const recipes = await prisma.recipes.findMany({
+      include: {
+        review: true,
+        user: true,
+      },
+    });
     res.send(recipes);
   } catch (error) {
     next(error);
@@ -60,6 +85,12 @@ router.get("/recipe/:id", async (req, res, next) => {
         id: parseInt(req.params.id),
       },
       include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
         ingredient: {
           include: {
             ingredient: true,
@@ -190,71 +221,96 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
 // );
 
 // Create a Recipe
-router.post("/recipe", isLoggedIn, async (req, res, next) => {
-  try {
-    const categoryIds = Array.isArray(req.body.categories)
-      ? req.body.categories.map((id) => parseInt(id))
-      : [];
-    const instructionsArray = Array.isArray(req.body.instructions)
-      ? req.body.instructions
-      : [req.body.instructions];
-    const instructIds = [];
-    for (const instruct of instructionsArray) {
-      const result = await prisma.instructions.upsert({
-        where: { instruction: instruct },
-        update: {},
-        create: { instruction: instruct },
-      });
-      instructIds.push({ id: result.id });
-    }
+router.post(
+  "/recipe",
+  upload.single("my_file"),
+  isLoggedIn,
+  async (req, res, next) => {
+    try {
+      const categoryIds = Array.isArray(req.body.categories)
+        ? req.body.categories.map((id) => parseInt(id))
+        : [];
+      const instructionsArray = Array.isArray(req.body.instructions)
+        ? req.body.instructions
+        : [req.body.instructions];
+      const instructIds = [];
+      for (const instruct of instructionsArray) {
+        const result = await prisma.instructions.upsert({
+          where: { instruction: instruct },
+          update: {},
+          create: { instruction: instruct },
+        });
+        instructIds.push({ id: result.id });
+      }
+      const { ingredients } = req.body;
+      if (Array.isArray(ingredients)) {
+        console.log("Ingredients received:", ingredients);
+      } else {
+        console.error("Ingredients not received as array:", ingredients);
+      }
 
-    const ingredientsData = req.body.ingredients.map(async (ingredient) => {
-      const { name, quantity, unitName } = ingredient;
-      const unit = await prisma.units.upsert({
-        where: { name: unitName },
-        update: {},
-        create: { name: unitName },
+      const ingredientsData = req.body.ingredients.map(async (ingredient) => {
+        const { name, quantity, unit } = ingredient;
+        console.log("Processing ingredient:", name, quantity, unit);
+        const unitName = await prisma.units.upsert({
+          where: { name: unit },
+          update: {},
+          create: { name: unit },
+        });
+        const ingredientRecord = await prisma.ingredients.upsert({
+          where: { name: name },
+          update: {},
+          create: { name: name },
+        });
+        return {
+          ingredientId: ingredientRecord.id,
+          quantity: quantity,
+          unitId: unitName.id,
+        };
       });
-      const ingredientRecord = await prisma.ingredients.upsert({
-        where: { name: name },
-        update: {},
-        create: { name: name },
+      const ingredientData = await Promise.all(ingredientsData);
+      const recipe = await prisma.recipes.create({
+        data: {
+          user: { connect: { id: req.user.id } },
+          name: req.body.name,
+          description: req.body.description,
+          ingredient: {
+            create: ingredientData.map((ingredient) => ({
+              ingredientId: ingredient.ingredientId,
+              quantity: ingredient.quantity,
+              unitId: ingredient.unitId,
+            })),
+          },
+          instructions: {
+            connect: instructIds,
+          },
+          photo: req.body.photo,
+          categories: {
+            connect: categoryIds.map((id) => ({ id })),
+          },
+        },
       });
-      return {
-        ingredientId: ingredientRecord.id,
-        quantity: quantity,
-        unitId: unit.id,
-      };
-    });
-    const ingredientData = await Promise.all(ingredientsData);
-    const recipe = await prisma.recipes.create({
-      data: {
-        user: { connect: { id: req.user.id } },
-        name: req.body.name,
-        description: req.body.description,
-        ingredient: {
-          create: ingredientData.map((ingredient) => ({
-            ingredientId: ingredient.ingredientId,
-            quantity: ingredient.quantity,
-            unitId: ingredient.unitId,
-          })),
-        },
-        instructions: {
-          connect: instructIds,
-        },
-        photo: req.body.photo,
-        categories: {
-          connect: categoryIds.map((id) => ({ id })),
-        },
-      },
-    });
-    res.status(201).send(recipe);
+      res.status(201).send(recipe);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Upload a photo
+router.post("/upload", upload.single("my_file"), async (req, res) => {
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const cldRes = await handleUpload(dataURI);
+    res.json(cldRes);
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.send({
+      message: error.message,
+    });
   }
 });
-
-// UPDATE RECIPE
 
 // Update a Logged-in User's Recipe
 router.put("/:id", isLoggedIn, async (req, res, next) => {
