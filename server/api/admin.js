@@ -124,6 +124,7 @@ router.put(
     try {
       const removedIngredientIds = req.body.removedIngredientIds || [];
       const removedInstructionIds = req.body.removedInstructionIds || [];
+      const removedCategoryIds = req.body.removedCategoryIds || [];
 
       const categoryIds = Array.isArray(req.body.categories)
         ? req.body.categories.map((id) => parseInt(id))
@@ -189,7 +190,6 @@ router.put(
           },
           instructions: {
             connect: instructIds,
-
             disconnect:
               removedInstructionIds.length > 0
                 ? removedInstructionIds.map((id) => ({ id: parseInt(id) }))
@@ -198,6 +198,10 @@ router.put(
           photo: req.body.photo,
           categories: {
             connect: categoryIds.map((id) => ({ id })),
+            disconnect:
+              removedCategoryIds.length > 0
+                ? removedCategoryIds.map((id) => ({ id: parseInt(id) }))
+                : [],
           },
         },
       });

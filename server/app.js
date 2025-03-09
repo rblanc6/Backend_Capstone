@@ -4,6 +4,7 @@ const app = express();
 const cors = require("cors");
 app.use(cors());
 
+
 // Logging middleware
 app.use(morgan("dev"));
 
