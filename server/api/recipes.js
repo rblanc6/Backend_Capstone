@@ -4,8 +4,6 @@ require("dotenv").config();
 const JWT = process.env.JWT || "1234";
 const { prisma } = require("../db/common");
 const { getUserId } = require("../db/db");
-// const multer = require("multer");
-// const upload = multer({ dest: "uploads/" });
 require("dotenv").config();
 const cloudinary = require("cloudinary").v2;
 const Multer = require("multer");
@@ -51,6 +49,13 @@ router.get("/", async (req, res, next) => {
       include: {
         review: true,
         user: true,
+        ingredient: {
+          include: {
+            ingredient: true,
+            unit: true,
+          },
+        },
+        categories: true,
       },
     });
     res.send(recipes);
@@ -113,6 +118,7 @@ router.get("/recipe/:id", async (req, res, next) => {
                 comment: true,
                 user: {
                   select: {
+                    id: true,
                     firstName: true,
                     lastName: true,
                   },
@@ -142,83 +148,6 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
     next(error);
   }
 });
-// Create a Recipe
-// router.post(
-//   "/recipe",
-//   isLoggedIn,
-//   upload.single("photo"),
-//   async (req, res, next) => {
-//     console.log(req.body); // Other form fields
-//     console.log(req.file);
-//     try {
-//       const categoryIds = req.body.category
-//         ? JSON.parse(req.body.category).map((id) => parseInt(id))
-//         : [];
-//       if (categoryIds === 0) {
-//         return res.status(400).send({ error: "Categories are required" });
-//       }
-//       const instructionsArray = req.body.instructions
-//         // ? JSON.parse(req.body.instructions)
-//         // : [];
-//       const instructIds = [];
-//       for (const instruct of instructionsArray) {
-//         const result = await prisma.instructions.upsert({
-//           where: { instruction: instruct },
-//           update: {},
-//           create: { instruction: instruct },
-//         });
-//         instructIds.push({ id: result.id });
-//       }
-//       const ingredientsData = req.body.ingredient
-//         ? JSON.parse(req.body.ingredient).map(async (ingredient) => {
-//             const { name, quantity, unitName } = ingredient;
-//             const unit = await prisma.units.upsert({
-//               where: { name: unitName },
-//               update: {},
-//               create: { name: unitName },
-//             });
-//             const ingredientRecord = await prisma.ingredients.upsert({
-//               where: { name: name },
-//               update: {},
-//               create: { name: name },
-//             });
-//             return {
-//               ingredientId: ingredientRecord.id,
-//               quantity: quantity,
-//               unitId: unit.id,
-//             };
-//           })
-//         : [];
-//       const ingredientData = await Promise.all(ingredientsData);
-
-//       // Create the recipe with the parsed data
-//       const recipe = await prisma.recipes.create({
-//         data: {
-//           user: { connect: { id: req.user.id } },
-//           name: req.body.name,
-//           description: req.body.description,
-//           ingredient: {
-//             create: ingredientData.map((ingredient) => ({
-//               ingredientId: ingredient.ingredientId,
-//               quantity: ingredient.quantity,
-//               unitId: ingredient.unitId,
-//             })),
-//           },
-//           instructions: {
-//             connect: instructIds,
-//           },
-//           photo: req.file,
-//           categories: {
-//             connect: categoryIds.map((id) => ({ id })),
-//           },
-//         },
-//       });
-//       res.status(201).send(recipe);
-//     } catch (error) {
-//       next(error);
-//     }
-//   }
-// );
 
 // Create a Recipe
 router.post(
