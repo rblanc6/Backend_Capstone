@@ -59,7 +59,7 @@ router.get("/user/:userId", isLoggedIn, async (req, res, next) => {
 // Get Individual Comment
 router.get("/:id", isLoggedIn, async (req, res, next) => {
   try {
-    const comments = await prisma.comments.findMany({
+    const comments = await prisma.comments.findUnique({
       where: {
         id: parseInt(req.params.id),
       },
