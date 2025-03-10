@@ -62,7 +62,32 @@ router.post("/login", async (req, res, next) => {
 // Get the Logged-in User's Information
 router.get("/me", isLoggedIn, async (req, res, next) => {
   try {
-    res.send(req.user);
+    const userId = req.user.id;
+    const response = await prisma.users.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        recipes: true,
+        favorites: {
+          include: {
+            recipe: true,
+          },
+        },
+        reviews: {
+          include: {
+            recipe: {
+              include: {
+                user: true,
+              },
+            },
+          
+          },
+        },
+      },
+    });
+   
+    res.send(response);
   } catch (error) {
     next(error);
   }
