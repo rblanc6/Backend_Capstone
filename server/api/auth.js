@@ -81,12 +81,22 @@ router.get("/me", isLoggedIn, async (req, res, next) => {
                 user: true,
               },
             },
-          
+          },
+        },
+        comments: {
+          include: {
+            user: true,
+            review: {
+              include: {
+                recipe: true,
+                user: true,
+              },
+            },
           },
         },
       },
     });
-   
+
     res.send(response);
   } catch (error) {
     next(error);
