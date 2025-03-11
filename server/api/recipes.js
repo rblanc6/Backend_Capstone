@@ -116,6 +116,7 @@ router.get("/recipe/:id", async (req, res, next) => {
               select: {
                 id: true,
                 comment: true,
+                createdAt: true,
                 user: {
                   select: {
                     id: true,
