@@ -287,8 +287,8 @@ router.get(
           id: id,
         },
         include: {
-          reviews: true,
-          comments: true,
+          reviews: { include: { recipe: true } },
+          comments: { include: { review: { include: { recipe: true } } } },
           recipes: {
             include: {
               review: {
