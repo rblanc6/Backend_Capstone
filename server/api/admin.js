@@ -273,6 +273,40 @@ router.get(
   }
 );
 
+// Get Individual User Additional Details as Admin
+router.get(
+  "/user/:id",
+  isLoggedIn,
+  checkRole(["ADMIN"]),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { recipes, favorites } = req.body;
+      const userDetails = await prisma.users.findUnique({
+        where: {
+          id: id,
+        },
+        include: {
+          reviews: true,
+          comments: true,
+          recipes: {
+            include: {
+              review: {
+                include: {
+                  comments: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      res.send(userDetails);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // Update User Roles as Admin
 router.put(
   "/user/:id",
