@@ -90,6 +90,7 @@ router.get("/recipe/:id", async (req, res, next) => {
         id: parseInt(req.params.id),
       },
       include: {
+        favoritedBy: true,
         user: {
           select: {
             firstName: true,
