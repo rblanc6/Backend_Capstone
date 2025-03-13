@@ -265,7 +265,9 @@ router.get(
   checkRole(["ADMIN"]),
   async (req, res, next) => {
     try {
-      const users = await prisma.users.findMany({});
+      const users = await prisma.users.findMany({
+        include: { reviews: true, comments: true, recipes: true },
+      });
       res.send(users);
     } catch (error) {
       next(error);
@@ -307,7 +309,7 @@ router.get(
   }
 );
 
-// Update User Roles as Admin
+// Update User as Admin
 router.put(
   "/user/:id",
   isLoggedIn,
@@ -315,21 +317,47 @@ router.put(
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { role } = req.body;
-      const assignAdmin = await prisma.users.update({
+      const user = await prisma.users.update({
         where: {
           id: id,
         },
         data: {
-          role: role,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          email: req.body.email,
+          role: req.body.role,
         },
       });
-      res.send(assignAdmin);
+      res.send(user);
     } catch (error) {
       next(error);
     }
   }
 );
+
+// Update User Roles as Admin
+// router.put(
+//   "/user/role/:id",
+//   isLoggedIn,
+//   checkRole(["ADMIN"]),
+//   async (req, res, next) => {
+//     try {
+//       const { id } = req.params;
+//       const { role } = req.body;
+//       const assignAdmin = await prisma.users.update({
+//         where: {
+//           id: id,
+//         },
+//         data: {
+//           role: role,
+//         },
+//       });
+//       res.send(assignAdmin);
+//     } catch (error) {
+//       next(error);
+//     }
+//   }
+// );
 
 // Delete a User as Admin
 router.delete(
