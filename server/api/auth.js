@@ -68,10 +68,14 @@ router.get("/me", isLoggedIn, async (req, res, next) => {
         id: userId,
       },
       include: {
-        recipes: true,
+        recipes: {
+          include: {
+            review: true,
+          },
+        },
         favorites: {
           include: {
-            recipe: true,
+            recipe: { include: { review: true } },
           },
         },
         reviews: {
