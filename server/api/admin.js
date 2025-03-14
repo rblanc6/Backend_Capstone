@@ -289,7 +289,7 @@ router.get(
           id: id,
         },
         include: {
-          reviews: { include: { recipe: true } },
+          reviews: { include: { recipe: { include: { review: true } } } },
           comments: { include: { review: { include: { recipe: true } } } },
           recipes: {
             include: {
