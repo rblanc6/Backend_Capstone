@@ -34,9 +34,20 @@ const isLoggedIn = async (req, res, next) => {
 router.post("/register", async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body;
-    const response = await createUser(firstName, lastName, email, password);
-    const token = setToken(response.id);
-    res.status(201).json({ token, user: response });
+    const existingUser = await prisma.users.findUnique({
+      where: { email: email },
+    });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({
+          message: "This email is already in use. Please use a different one.",
+        });
+    } else {
+      const response = await createUser(firstName, lastName, email, password);
+      const token = setToken(response.id);
+      res.status(201).json({ token, user: response });
+    }
   } catch (error) {
     next(error);
   }
