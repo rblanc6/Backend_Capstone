@@ -244,56 +244,227 @@ router.post("/upload", upload.single("my_file"), async (req, res) => {
 });
 
 // Update a Logged-in User's Recipe
+// router.put("/:id", isLoggedIn, async (req, res, next) => {
+//   try {
+//     const removedIngredientIds = req.body.removedIngredientIds || [];
+//     const removedInstructionIds = req.body.removedInstructionIds || [];
+//     const removedCategoryIds = req.body.removedCategoryIds || [];
+
+//     const categoryIds = Array.isArray(req.body.categories)
+//       ? req.body.categories.map((id) => parseInt(id))
+//       : [];
+//     const instructionsArray = Array.isArray(req.body.instructions)
+//       ? req.body.instructions
+//       : [req.body.instructions];
+//     const instructIds = [];
+//     for (const instruct of instructionsArray) {
+//       const instructionText =
+//         typeof instruct === "object" &&
+//         instruct !== null &&
+//         instruct.instruction
+//           ? instruct.instruction
+//           : instruct;
+//       if (!instructionText || typeof instructionText !== "string") {
+//         console.error("Invalid instruction:", instruct);
+//         continue;
+//       }
+//       const result = await prisma.instructions.upsert({
+//         where: { instruction: instructionText },
+//         update: {},
+//         create: { instruction: instructionText },
+//       });
+//       instructIds.push({ id: result.id });
+//     }
+//     const ingredientsData = req.body.ingredients.map(async (ingredient) => {
+//       const { name, quantity, unitName } = ingredient;
+//       const unit = await prisma.units.upsert({
+//         where: { name: unitName },
+//         update: {},
+//         create: { name: unitName },
+//       });
+//       const ingredientRecord = await prisma.ingredients.upsert({
+//         where: { name: name },
+//         update: {},
+//         create: { name: name },
+//       });
+//       return {
+//         ingredientId: ingredientRecord.id,
+//         quantity: quantity,
+//         unitId: unit.id,
+//       };
+//     });
+//     const ingredientData = await Promise.all(ingredientsData);
+//     const recipe = await prisma.recipes.update({
+//       where: {
+//         id: parseInt(req.params.id),
+//         creatorId: req.body.creatorId,
+//       },
+//       data: {
+//         name: req.body.name,
+//         description: req.body.description,
+//         ingredient: {
+//           deleteMany: {
+//             id: { in: removedIngredientIds },
+//           },
+//           create: ingredientData.map((ingredient) => ({
+//             ingredientId: ingredient.ingredientId,
+//             quantity: ingredient.quantity,
+//             unitId: ingredient.unitId,
+//           })),
+//         },
+//         instructions: {
+//           connect: instructIds,
+//           disconnect:
+//             removedInstructionIds.length > 0
+//               ? removedInstructionIds.map((id) => ({ id: parseInt(id) }))
+//               : [],
+//         },
+//         photo: req.body.photo,
+//         categories: {
+//           connect: categoryIds.map((id) => ({ id })),
+//           disconnect:
+//             removedCategoryIds.length > 0
+//               ? removedCategoryIds.map((id) => ({ id: parseInt(id) }))
+//               : [],
+//         },
+//       },
+//     });
+//     if (!recipe) {
+//       return res.status(404).send("Recipe not found.");
+//     }
+//     res.send(recipe);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
 router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const removedIngredientIds = req.body.removedIngredientIds || [];
-    const removedInstructionIds = req.body.removedInstructionIds || [];
-    const removedCategoryIds = req.body.removedCategoryIds || [];
 
+    const removedCategoryIds = req.body.removedCategoryIds || [];
     const categoryIds = Array.isArray(req.body.categories)
       ? req.body.categories.map((id) => parseInt(id))
       : [];
-    const instructionsArray = Array.isArray(req.body.instructions)
-      ? req.body.instructions
-      : [req.body.instructions];
-    const instructIds = [];
-    for (const instruct of instructionsArray) {
-      const instructionText =
-        typeof instruct === "object" &&
-        instruct !== null &&
-        instruct.instruction
-          ? instruct.instruction
-          : instruct;
-      if (!instructionText || typeof instructionText !== "string") {
-        console.error("Invalid instruction:", instruct);
-        continue;
+    const newInstructionsArray = Array.isArray(req.body.newInstructions)
+      ? req.body.newInstructions
+      : [req.body.newInstructions];
+    const existingInstructionsArray = Array.isArray(
+      req.body.existingInstructions
+    )
+      ? req.body.existingInstructions
+      : [req.body.existingInstructions];
+    console.log("Existing Instructions (backend):", existingInstructionsArray);
+
+    const newIngredientsData = req.body.newIngredients.map(
+      async (ingredient) => {
+        const { name, quantity, unitName } = ingredient;
+        const unit = await prisma.units.upsert({
+          where: { name: unitName },
+          update: {},
+          create: { name: unitName },
+        });
+        const ingredientRecord = await prisma.ingredients.upsert({
+          where: { name: name },
+          update: {},
+          create: { name: name },
+        });
+        return {
+          ingredientId: ingredientRecord.id,
+          quantity: quantity,
+          unitId: unit.id,
+        };
       }
-      const result = await prisma.instructions.upsert({
-        where: { instruction: instructionText },
-        update: {},
-        create: { instruction: instructionText },
-      });
-      instructIds.push({ id: result.id });
-    }
-    const ingredientsData = req.body.ingredients.map(async (ingredient) => {
-      const { name, quantity, unitName } = ingredient;
-      const unit = await prisma.units.upsert({
-        where: { name: unitName },
-        update: {},
-        create: { name: unitName },
-      });
-      const ingredientRecord = await prisma.ingredients.upsert({
-        where: { name: name },
-        update: {},
-        create: { name: name },
-      });
-      return {
-        ingredientId: ingredientRecord.id,
-        quantity: quantity,
-        unitId: unit.id,
-      };
+    );
+    const existingIngredientsData = req.body.existingIngredients.map(
+      async (ingredient) => {
+        const { id, name, quantity, unitName } = ingredient;
+        const unit = await prisma.units.upsert({
+          where: { name: unitName },
+          update: {},
+          create: { name: unitName },
+        });
+        const ingredientRecord = await prisma.ingredients.upsert({
+          where: { name: name },
+          update: {},
+          create: { name: name },
+        });
+        return prisma.recipeIngredient.update({
+          where: { id: id },
+          data: {
+            ingredientId: ingredientRecord.id,
+            quantity: quantity,
+            unitId: unit.id,
+          },
+        });
+      }
+    );
+    const newIngredientData = await Promise.all(newIngredientsData);
+    const existingIngredientData = await Promise.all(existingIngredientsData);
+
+    const currentRecipe = await prisma.recipes.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: { instructions: true }, // Include instructions for comparison
     });
-    const ingredientData = await Promise.all(ingredientsData);
+
+    if (!currentRecipe) {
+      return res.status(404).send("Recipe not found.");
+    }
+
+    const newInstructIds = [];
+    const removedInstructionIds = req.body.removedInstructionIds || []; // Ensure removedInstructionIds is initialized
+
+    for (const instruct of newInstructionsArray) {
+      const instructionText = instruct.instruction;
+      const existingInstruction = await prisma.instructions.findFirst({
+        where: { instruction: instructionText },
+      });
+
+      if (existingInstruction) {
+        // Instruction already exists, connect it
+        newInstructIds.push({ id: existingInstruction.id });
+        if (
+          instruct.id &&
+          instruct.instruction !==
+            currentRecipe.instructions.find((i) => i.id === instruct.id)
+              ?.instruction
+        ) {
+          removedInstructionIds.push(instruct.id); // Add original instruction ID to removedInstructionIds
+        }
+      } else {
+        // Instruction doesn't exist, create it
+        const result = await prisma.instructions.create({
+          data: { instruction: instructionText },
+        });
+        newInstructIds.push({ id: result.id });
+        if (
+          instruct.id &&
+          instruct.instruction !==
+            currentRecipe.instructions.find((i) => i.id === instruct.id)
+              ?.instruction
+        ) {
+          removedInstructionIds.push(instruct.id); // Add original instruction ID to removedInstructionIds
+        }
+      }
+    }
+
+    // for (const instruct of newInstructionsArray) {
+    //   const instructionText = instruct.instruction;
+    //   const result = await prisma.instructions.upsert({
+    //     where: { instruction: instructionText },
+    //     update: {},
+    //     create: { instruction: instructionText },
+    //   });
+    //   newInstructIds.push({ id: result.id });
+    // }
+    // const existingInstructUpdates = existingInstructionsArray.map((instruct) =>
+    //   prisma.instructions.update({
+    //     where: { id: instruct.id },
+    //     data: { instruction: instruct.instruction },
+    //   })
+    // );
+    // await Promise.all(existingInstructUpdates);
+    console.log("New Instruction IDs:", newInstructIds);
     const recipe = await prisma.recipes.update({
       where: {
         id: parseInt(req.params.id),
@@ -306,19 +477,34 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
           deleteMany: {
             id: { in: removedIngredientIds },
           },
-          create: ingredientData.map((ingredient) => ({
+          create: newIngredientData.map((ingredient) => ({
             ingredientId: ingredient.ingredientId,
             quantity: ingredient.quantity,
             unitId: ingredient.unitId,
           })),
+          update: existingIngredientData.map((ingredient) => ({
+            where: { id: ingredient.id },
+            data: {
+              ingredientId: ingredient.ingredientId,
+              quantity: ingredient.quantity,
+              unitId: ingredient.unitId,
+            },
+          })),
         },
         instructions: {
-          connect: instructIds,
+          connect:
+            newInstructIds.length > 0
+              ? newInstructIds.map((inst) => ({ id: inst.id }))
+              : undefined,
           disconnect:
             removedInstructionIds.length > 0
               ? removedInstructionIds.map((id) => ({ id: parseInt(id) }))
-              : [],
+              : undefined,
         },
+        // instructions: {
+        //   connect: newInstructIds.length > 0 ? newInstructIds.map((inst) => ({ id: inst.id })) : undefined, // Only connect new instructions if there are any
+        //   disconnect: removedInstructionIds.length > 0 ? removedInstructionIds.map((id) => ({ id: parseInt(id) })) : undefined, // Only disconnect if there are removed instructions
+        // },
         photo: req.body.photo,
         categories: {
           connect: categoryIds.map((id) => ({ id })),
