@@ -14,15 +14,20 @@ const setToken = (id) => {
 
 // Authorize the Token with Id
 const isLoggedIn = async (req, res, next) => {
+  // Extract authorization header
   const authHeader = req.headers.authorization;
+  // Check if token is provided
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized: No token provided" });
   }
+  // Extract token from header
   const token = authHeader.slice(7);
   if (!token) return next();
   try {
+    // Verify token and retrieve user ID
     const { id } = jwt.verify(token, JWT);
     const user = await getUserId(id);
+    // Attach user data to request object
     req.user = user;
     next();
   } catch (error) {
@@ -30,10 +35,12 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-// Register a User
+// Register a new user
 router.post("/register", async (req, res, next) => {
   try {
+    // Extract user details from request body
     const { firstName, lastName, email, password } = req.body;
+     // Check if email already exists in database
     const existingUser = await prisma.users.findUnique({
       where: { email: email },
     });
@@ -44,6 +51,7 @@ router.post("/register", async (req, res, next) => {
           message: "This email is already in use. Please use a different one.",
         });
     } else {
+      // Create new user in database
       const response = await createUser(firstName, lastName, email, password);
       const token = setToken(response.id);
       res.status(201).json({ token, user: response });
@@ -56,11 +64,14 @@ router.post("/register", async (req, res, next) => {
 // Login a User
 router.post("/login", async (req, res, next) => {
   try {
+    // Extract email and password from request body
     const { email, password } = req.body;
     const user = await getUser(email, password);
+    // Compare provided password with stored hashed password
     const match = await bcrypt.compare(password, user.password);
     if (match) {
       const token = setToken(user.id);
+      // Respond with token and user role
       res.status(200).json({ token, role: user.role, user: user });
     } else {
       res.status(403).json({ message: "Username and Password do not match" });
@@ -73,7 +84,9 @@ router.post("/login", async (req, res, next) => {
 // Get the Logged-in User's Information
 router.get("/me", isLoggedIn, async (req, res, next) => {
   try {
+    // Extract user ID from request object
     const userId = req.user.id;
+    // Fetch user details
     const response = await prisma.users.findUnique({
       where: {
         id: userId,
@@ -122,6 +135,7 @@ router.get("/me", isLoggedIn, async (req, res, next) => {
 router.get("/user/:id", isLoggedIn, async (req, res, next) => {
   try {
     const { id } = req.params;
+    // Fetch user details from database
     const user = await prisma.users.findUniqueOrThrow({
       where: {
         id: id,
@@ -137,6 +151,7 @@ router.get("/user/:id", isLoggedIn, async (req, res, next) => {
 router.put("/user/:id", isLoggedIn, async (req, res, next) => {
   try {
     const { id } = req.params;
+    // Update user details in database
     const user = await prisma.users.update({
       where: {
         id: id,

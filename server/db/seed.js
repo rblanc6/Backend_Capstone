@@ -37,7 +37,6 @@ async function seed() {
       )
     );
     const categoryIds = categories.map((category) => category.id);
-
     const ingredientNames = new Set();
 
     const ingredients = await Promise.all(
@@ -85,7 +84,7 @@ async function seed() {
     );
     const unitIds = units.map((unit) => unit.id);
 
-    //Add Instructions, collect their ID's
+    // Add Instructions, collect their ID's
     const instructions = await Promise.all(
       [...Array(600)].map((_, i) =>
         prisma.instructions.create({
@@ -162,7 +161,6 @@ async function seed() {
 
     // Filter out any `null` values that were skipped
     const filteredReviews = reviews.filter((review) => review !== null);
-
     const reviewIds = filteredReviews.map((review) => review.id);
 
     // Add Comments.

@@ -20,7 +20,7 @@ const createUser = async (firstName, lastName, email, password) => {
   }
 };
 
-//Get a User
+//Get a User by email
 const getUser = async (email) => {
   const response = await prisma.users.findFirstOrThrow({
     where: {
@@ -30,7 +30,7 @@ const getUser = async (email) => {
   return response;
 };
 
-//Get a User Id
+//Get a User Id with related data
 const getUserId = async (id) => {
   const response = await prisma.users.findFirstOrThrow({
     where: {
