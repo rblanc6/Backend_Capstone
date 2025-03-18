@@ -58,7 +58,7 @@ Installation
 <!-- Links -->
 [Visual Studio Code]: https://custom-icon-badges.demolab.com/badge/Visual%20Studio%20Code-0078d7.svg?logo=vsc&logoColor=white
 [VSC-url]:https://code.visualstudio.com/
-[Prisma]: https:/https://img.shields.io/badge/Prisma-2D3748?logo=prisma&logoColor=white
+[Prisma]: https://img.shields.io/badge/Prisma-2D3748?logo=prisma&logoColor=white
 [Prisma-url]: https://www.prisma.io/
 [Node.js]: https://img.shields.io/badge/Node.js-6DA55F?logo=node.js&logoColor=white
 [Node-url]: https://nodejs.org/en
