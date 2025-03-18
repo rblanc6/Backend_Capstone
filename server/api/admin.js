@@ -16,6 +16,7 @@ const isLoggedIn = async (req, res, next) => {
   const token = authHeader.slice(7);
   if (!token) return next();
   try {
+    // Verify token and retrieve user ID
     const { id } = jwt.verify(token, JWT);
     const user = await getUserId(id);
     req.user = user;
@@ -25,7 +26,7 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-// Authorize Admin
+// Check required role, authorize Admin
 const checkRole = (roles) => (req, res, next) => {
   if (!req.user || !roles.includes(req.user.role)) {
     return res.status(403).json({ message: "Unauthorized" });
@@ -33,7 +34,7 @@ const checkRole = (roles) => (req, res, next) => {
   next();
 };
 
-// View List of All Recipes
+// Get All Recipes (Admin only)
 router.get(
   "/recipes",
   isLoggedIn,
@@ -48,13 +49,14 @@ router.get(
   }
 );
 
-// Add Recipes
+// Add a New Recipe (Admin only)
 router.post(
   "/recipe",
   isLoggedIn,
   checkRole(["ADMIN"]),
   async (req, res, next) => {
     try {
+      // Extract and process categories, ingredients, and instructions
       const categoryIds = req.body.categories.map((id) => parseInt(id));
       const instructionsArray = Array.isArray(req.body.instructions)
         ? req.body.instructions
@@ -68,6 +70,8 @@ router.post(
         });
         instructIds.push({ id: result.id });
       }
+
+      // Process ingredients
       const ingredientsData = req.body.ingredients.map(async (ingredient) => {
         const { name, quantity, unitName } = ingredient;
         const unit = await prisma.units.upsert({
@@ -87,6 +91,8 @@ router.post(
         };
       });
       const ingredientData = await Promise.all(ingredientsData);
+
+      // Create new recipe in database
       const recipe = await prisma.recipes.create({
         data: {
           user: { connect: { id: req.user.id } },
@@ -115,15 +121,18 @@ router.post(
   }
 );
 
+// Edit any recipe (Admin only)
 router.put(
   "/recipe/:id",
   isLoggedIn,
   checkRole(["ADMIN"]),
   async (req, res, next) => {
     try {
+      // Extract removed ingredient and category IDs
       const removedIngredientIds = req.body.removedIngredientIds || [];
-
       const removedCategoryIds = req.body.removedCategoryIds || [];
+
+      // Parse categories and instructions
       const categoryIds = Array.isArray(req.body.categories)
         ? req.body.categories.map((id) => parseInt(id))
         : [];
@@ -140,6 +149,7 @@ router.put(
         existingInstructionsArray
       );
 
+      // Process new ingredients
       const newIngredientsData = req.body.newIngredients.map(
         async (ingredient) => {
           const { name, quantity, unitName } = ingredient;
@@ -160,6 +170,8 @@ router.put(
           };
         }
       );
+
+      // Process existing ingredients
       const existingIngredientsData = req.body.existingIngredients.map(
         async (ingredient) => {
           const { id, name, quantity, unitName } = ingredient;
@@ -186,6 +198,7 @@ router.put(
       const newIngredientData = await Promise.all(newIngredientsData);
       const existingIngredientData = await Promise.all(existingIngredientsData);
 
+      // Retrieve the current recipe
       const currentRecipe = await prisma.recipes.findUnique({
         where: { id: parseInt(req.params.id) },
         include: { instructions: true }, // Include instructions for comparison
@@ -195,6 +208,7 @@ router.put(
         return res.status(404).send("Recipe not found.");
       }
 
+      // Process new and removed instructions
       const newInstructIds = [];
       const removedInstructionIds = req.body.removedInstructionIds || []; // Ensure removedInstructionIds is initialized
 
@@ -248,7 +262,9 @@ router.put(
       //   })
       // );
       // await Promise.all(existingInstructUpdates);
-      console.log("New Instruction IDs:", newInstructIds);
+      // console.log("New Instruction IDs:", newInstructIds);
+
+      // Update the recipe
       const recipe = await prisma.recipes.update({
         where: {
           id: parseInt(req.params.id),
@@ -409,7 +425,7 @@ router.put(
 //   }
 // );
 
-// Remove a Category from a Recipe
+// Remove a Category from a Recipe (Admin only)
 router.put(
   "/recipe/removecategory/:id",
   isLoggedIn,
@@ -430,7 +446,7 @@ router.put(
   }
 );
 
-// Remove Recipes
+// Delete a Recipe (Admin only)
 router.delete(
   "/recipe/:id",
   isLoggedIn,
@@ -452,7 +468,7 @@ router.delete(
   }
 );
 
-// Get All Users as Admin
+// Get All Users (Admin only)
 router.get(
   "/users",
   isLoggedIn,
@@ -469,7 +485,7 @@ router.get(
   }
 );
 
-// Get Individual User Additional Details as Admin
+// Get Individual User Additional Details (Admin only)
 router.get(
   "/user/:id",
   isLoggedIn,
@@ -503,7 +519,7 @@ router.get(
   }
 );
 
-// Update User as Admin
+// Update User details (Admin only)
 router.put(
   "/user/:id",
   isLoggedIn,
@@ -553,7 +569,7 @@ router.put(
 //   }
 // );
 
-// Delete a User as Admin
+// Delete a User (Admin only)
 router.delete(
   "/user/:id",
   isLoggedIn,
