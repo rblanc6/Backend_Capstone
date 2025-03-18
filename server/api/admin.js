@@ -3,12 +3,36 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const JWT = process.env.JWT || "1234";
 const { prisma } = require("../db/common");
+const cloudinary = require("cloudinary").v2;
+const Multer = require("multer");
 
 // Import functions
 const { getUserId } = require("../db/db");
 
+// Configure Cloudinary for image uploads
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
+// Function to handle image uploads to Cloudinary
+async function handleUpload(file) {
+  const res = await cloudinary.uploader.upload(file, {
+    resource_type: "auto",
+  });
+  return res;
+}
+
+// Configure Multer for handling file uploads in memory
+const storage = new Multer.memoryStorage();
+const upload = Multer({
+  storage,
+});
+
 // Authorize the Token with Id
 const isLoggedIn = async (req, res, next) => {
+  // Extract authorization header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized: No token provided" });
@@ -52,6 +76,7 @@ router.get(
 // Add a New Recipe (Admin only)
 router.post(
   "/recipe",
+  upload.single("my_file"),
   isLoggedIn,
   checkRole(["ADMIN"]),
   async (req, res, next) => {
@@ -69,6 +94,14 @@ router.post(
           create: { instruction: instruct },
         });
         instructIds.push({ id: result.id });
+      }
+
+      // Extract ingredients from requested body, check if its an array
+      const { ingredients } = req.body;
+      if (Array.isArray(ingredients)) {
+        console.log("Ingredients received:", ingredients);
+      } else {
+        console.error("Ingredients not received as array:", ingredients);
       }
 
       // Process ingredients
@@ -120,6 +153,21 @@ router.post(
     }
   }
 );
+
+// Upload a photo
+router.post("/upload", upload.single("my_file"), async (req, res) => {
+  try {
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const cldRes = await handleUpload(dataURI);
+    res.json(cldRes);
+  } catch (error) {
+    console.log(error);
+    res.send({
+      message: error.message,
+    });
+  }
+});
 
 // Edit any recipe (Admin only)
 router.put(
