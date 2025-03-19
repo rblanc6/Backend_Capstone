@@ -263,101 +263,6 @@ router.post("/upload", upload.single("my_file"), async (req, res) => {
   }
 });
 
-// Update a Logged-in User's Recipe
-// router.put("/:id", isLoggedIn, async (req, res, next) => {
-//   try {
-//     const removedIngredientIds = req.body.removedIngredientIds || [];
-//     const removedInstructionIds = req.body.removedInstructionIds || [];
-//     const removedCategoryIds = req.body.removedCategoryIds || [];
-
-//     const categoryIds = Array.isArray(req.body.categories)
-//       ? req.body.categories.map((id) => parseInt(id))
-//       : [];
-//     const instructionsArray = Array.isArray(req.body.instructions)
-//       ? req.body.instructions
-//       : [req.body.instructions];
-//     const instructIds = [];
-//     for (const instruct of instructionsArray) {
-//       const instructionText =
-//         typeof instruct === "object" &&
-//         instruct !== null &&
-//         instruct.instruction
-//           ? instruct.instruction
-//           : instruct;
-//       if (!instructionText || typeof instructionText !== "string") {
-//         console.error("Invalid instruction:", instruct);
-//         continue;
-//       }
-//       const result = await prisma.instructions.upsert({
-//         where: { instruction: instructionText },
-//         update: {},
-//         create: { instruction: instructionText },
-//       });
-//       instructIds.push({ id: result.id });
-//     }
-//     const ingredientsData = req.body.ingredients.map(async (ingredient) => {
-//       const { name, quantity, unitName } = ingredient;
-//       const unit = await prisma.units.upsert({
-//         where: { name: unitName },
-//         update: {},
-//         create: { name: unitName },
-//       });
-//       const ingredientRecord = await prisma.ingredients.upsert({
-//         where: { name: name },
-//         update: {},
-//         create: { name: name },
-//       });
-//       return {
-//         ingredientId: ingredientRecord.id,
-//         quantity: quantity,
-//         unitId: unit.id,
-//       };
-//     });
-//     const ingredientData = await Promise.all(ingredientsData);
-//     const recipe = await prisma.recipes.update({
-//       where: {
-//         id: parseInt(req.params.id),
-//         creatorId: req.body.creatorId,
-//       },
-//       data: {
-//         name: req.body.name,
-//         description: req.body.description,
-//         ingredient: {
-//           deleteMany: {
-//             id: { in: removedIngredientIds },
-//           },
-//           create: ingredientData.map((ingredient) => ({
-//             ingredientId: ingredient.ingredientId,
-//             quantity: ingredient.quantity,
-//             unitId: ingredient.unitId,
-//           })),
-//         },
-//         instructions: {
-//           connect: instructIds,
-//           disconnect:
-//             removedInstructionIds.length > 0
-//               ? removedInstructionIds.map((id) => ({ id: parseInt(id) }))
-//               : [],
-//         },
-//         photo: req.body.photo,
-//         categories: {
-//           connect: categoryIds.map((id) => ({ id })),
-//           disconnect:
-//             removedCategoryIds.length > 0
-//               ? removedCategoryIds.map((id) => ({ id: parseInt(id) }))
-//               : [],
-//         },
-//       },
-//     });
-//     if (!recipe) {
-//       return res.status(404).send("Recipe not found.");
-//     }
-//     res.send(recipe);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
 // Edit a Logged-in user's recipe
 router.put("/:id", isLoggedIn, async (req, res, next) => {
   try {
@@ -476,24 +381,6 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
       }
     }
 
-    // for (const instruct of newInstructionsArray) {
-    //   const instructionText = instruct.instruction;
-    //   const result = await prisma.instructions.upsert({
-    //     where: { instruction: instructionText },
-    //     update: {},
-    //     create: { instruction: instructionText },
-    //   });
-    //   newInstructIds.push({ id: result.id });
-    // }
-    // const existingInstructUpdates = existingInstructionsArray.map((instruct) =>
-    //   prisma.instructions.update({
-    //     where: { id: instruct.id },
-    //     data: { instruction: instruct.instruction },
-    //   })
-    // );
-    // await Promise.all(existingInstructUpdates);
-    // console.log("New Instruction IDs:", newInstructIds);
-
     // Update the recipe
     const recipe = await prisma.recipes.update({
       where: {
@@ -531,10 +418,6 @@ router.put("/:id", isLoggedIn, async (req, res, next) => {
               ? removedInstructionIds.map((id) => ({ id: parseInt(id) }))
               : undefined,
         },
-        // instructions: {
-        //   connect: newInstructIds.length > 0 ? newInstructIds.map((inst) => ({ id: inst.id })) : undefined, // Only connect new instructions if there are any
-        //   disconnect: removedInstructionIds.length > 0 ? removedInstructionIds.map((id) => ({ id: parseInt(id) })) : undefined, // Only disconnect if there are removed instructions
-        // },
         photo: req.body.photo,
         categories: {
           connect: categoryIds.map((id) => ({ id })),
