@@ -27,7 +27,6 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-
 // Post a Review
 router.post("/review", isLoggedIn, async (req, res, next) => {
   try {
