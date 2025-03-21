@@ -94,6 +94,7 @@ router.get("/units", async (req, res, next) => {
     next(error);
   }
 });
+
 // Get an Individual Recipe
 router.get("/recipe/:id", async (req, res, next) => {
   try {
@@ -116,7 +117,11 @@ router.get("/recipe/:id", async (req, res, next) => {
             unit: true,
           },
         },
-        instructions: true,
+        instructions: {
+          include: {
+            instruction: true  
+          }
+        },
         categories: true,
         review: {
           include: {

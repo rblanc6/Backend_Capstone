@@ -33,36 +33,45 @@ model Users {
 }
 
 model Recipes {
-  id          Int                @id @default(autoincrement())
-  name        String
-  description String
-  instructions  Instructions[]
-  ingredient RecipeIngredient[]
-  photo       String?
-  categories  Categories[]       @relation("RecipeCategories")
-  creatorId   String
-  user        Users              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  review      Reviews[]
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime?          @updatedAt()
-  favoritedBy FavoriteRecipes[]
+  id           Int                  @id @default(autoincrement())
+  name         String
+  description  String
+  instructions RecipeInstructions[] @relation("RecipeInstructions")
+  ingredient   RecipeIngredient[]
+  photo        String?
+  categories   Categories[]         @relation("RecipeCategories")
+  creatorId    String
+  user         Users                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  review       Reviews[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime?            @updatedAt()
+  favoritedBy  FavoriteRecipes[]
 }
 
 model Instructions {
-  id  Int @id @default(autoincrement())
-  instruction String @unique
-  recipe  Recipes[]
+  id          Int                  @id @default(autoincrement())
+  instruction String               @unique
+  recipe      RecipeInstructions[] @relation("RecipeInstructions")
+}
+
+model RecipeInstructions {
+  instructionId Int
+  recipeId      Int
+  instruction Instructions @relation("RecipeInstructions", fields: [instructionId], references: [id])
+  recipe      Recipes      @relation("RecipeInstructions", fields: [recipeId], references: [id])
+
+  @@id([instructionId, recipeId])
 }
 
 model Ingredients {
   id               Int                @id @default(autoincrement())
-  name             String @unique
+  name             String             @unique
   recipeIngredient RecipeIngredient[]
 }
 
 model Units {
   id               Int                @id @default(autoincrement())
-  name             String @unique
+  name             String             @unique
   recipeIngredient RecipeIngredient[]
 }
 
@@ -82,7 +91,7 @@ model FavoriteRecipes {
   user     Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipeId Int
   recipe   Recipes @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  favorite  Boolean   @default(true)
+  favorite Boolean @default(true)
 
   @@id(name: "favoriteId", [userId, recipeId])
 }
