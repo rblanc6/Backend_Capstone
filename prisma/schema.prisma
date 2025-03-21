@@ -49,9 +49,9 @@ model Recipes {
 }
 
 model Instructions {
-  id          Int                  @id @default(autoincrement())
-  instruction String               @unique
-  recipe      RecipeInstructions[] @relation("RecipeInstructions")
+  id                 Int                  @id @default(autoincrement())
+  instruction        String               @unique
+  recipeInstructions RecipeInstructions[] @relation("RecipeInstructions")
 }
 
 model RecipeInstructions {
