@@ -56,4 +56,5 @@ const getUserId = async (id) => {
   return response;
 };
 
+
 module.exports = { createUser, getUser, getUserId };
