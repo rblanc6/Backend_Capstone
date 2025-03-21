@@ -98,7 +98,7 @@ router.get("/units", async (req, res, next) => {
 router.get("/recipe/:id", async (req, res, next) => {
   try {
     // Fetch the recipe details along with its ingredients, categories, and reviews
-    const recipe = await prisma.recipes.findUnique({
+    const recipe = await prisma.recipes.findFirstOrThrow({
       where: {
         id: parseInt(req.params.id),
       },
