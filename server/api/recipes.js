@@ -117,15 +117,7 @@ router.get("/recipe/:id", async (req, res, next) => {
             unit: true,
           },
         },
-        instructions: {
-          where: {
-            recipe: {
-              some: {
-                id: parseInt(req.params.id),
-              },
-            },
-          },
-        },
+        instructions: true,
         categories: true,
         review: {
           include: {
