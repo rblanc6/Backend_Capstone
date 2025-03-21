@@ -119,7 +119,7 @@ router.get("/recipe/:id", async (req, res, next) => {
         },
         instructions: {
           include: {
-            recipe: true,
+            instruction: true,
           },
         },
         categories: true,
