@@ -95,19 +95,6 @@ router.get("/units", async (req, res, next) => {
   }
 });
 
-// Get Instructions
-router.get("/recipe/instructions", async (req, res, next) => {
-  try {
-    const instructions = await prisma.instructions.findMany({
-      include: { recipe: true },
-    });
-    console.log(instructions);
-    res.send(instructions);
-  } catch (error) {
-    next(error);
-  }
-});
-
 // Get an Individual Recipe
 router.get("/recipe/:id", async (req, res, next) => {
   try {
@@ -130,7 +117,6 @@ router.get("/recipe/:id", async (req, res, next) => {
             unit: true,
           },
         },
-        // instructions: { include: { instruction: true, }, },
         instructions: true,
         categories: true,
         review: {
@@ -159,11 +145,6 @@ router.get("/recipe/:id", async (req, res, next) => {
         },
       },
     });
-    // const instructions = await prisma.instructions.findMany({
-    //   where: {
-    //     id: parseInt(req.params.id),
-    //   },})
-    //   console.log(instructions)
     res.send(recipe);
   } catch (error) {
     next(error);
