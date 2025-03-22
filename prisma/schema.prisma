@@ -33,34 +33,25 @@ model Users {
 }
 
 model Recipes {
-  id           Int                  @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   name         String
   description  String
-  instructions RecipeInstructions[]
+  instructions Instructions[]
   ingredient   RecipeIngredient[]
   photo        String?
-  categories   Categories[]         @relation("RecipeCategories")
+  categories   Categories[]       @relation("RecipeCategories")
   creatorId    String
-  user         Users                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  user         Users              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   review       Reviews[]
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime?            @updatedAt()
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime?          @updatedAt()
   favoritedBy  FavoriteRecipes[]
 }
 
 model Instructions {
-  id          Int                  @id @default(autoincrement())
-  instruction String               @unique
-  recipe      RecipeInstructions[]
-}
-
-model RecipeInstructions {
-  recipeId      Int
-  recipe        Recipes      @relation(fields: [recipeId], references: [id])
-  instructionId Int
-  instruction   Instructions @relation(fields: [instructionId], references: [id])
-
-  @@id([recipeId, instructionId])
+  id          Int       @id @default(autoincrement())
+  instruction String    @unique
+  recipe      Recipes[]
 }
 
 model Ingredients {
