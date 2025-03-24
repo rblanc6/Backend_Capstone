@@ -40,32 +40,32 @@ Installation
    ```sh
    npm install
    ```
-3. Run Migrations
+3. Create a new database
    ```sh
-   npx prisma migrate dev
+   psql -U postgres
+   CREATE DATABASE racipe_hub;
+   \q
    ```
-4. Create a .env file with the following variables:
-
+4. Create a .env file with the following variables
    ```sh
+   DATABASE_URL="postgresql://<username>:<password>@localhost:5432/racipe_hub?schema=public"
    JWT_SECRET=<your_jwt_secret>
    CLOUD_NAME=<your_cloud_name>
    API_KEY=<your_api_key>
    API_SECRET=<your_api_secret>
    ```
-
-5. Run the development environment
+5. Run Migrations
+   ```sh
+   npx prisma migrate dev
+   ```
+6. Seed database
+   ```sh
+   npm run seed
+   ```
+7. Run the development environment
    ```sh
    npm run server:dev
    ```
-
-### API Documentation:
-
-Base URL:
-   ```sh
-   http://localhost:PORT/api
-   ```
-   (Replace PORT with your actual port number or provide a deployed URL if available)
-
 
 <!-- Links -->
 
