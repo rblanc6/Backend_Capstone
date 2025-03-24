@@ -21,7 +21,6 @@ A central space for all things food, offering the essence of a community-driven 
 - [![Postgres]][Postgres-url]
 - [![JavaScript]][JavaScript-url]
 
-
 ### Getting Started:
 
 Prerequisites
@@ -42,22 +41,36 @@ Installation
    npm install
    ```
 3. Run Migrations
-    ```sh
-    npx prisma migrate dev
-    ```
-4. Seed the database
    ```sh
-   npm run seed
+   npx prisma migrate dev
    ```
-6. Run the development environment
-    ```sh
-    npm run server:dev
-    ```
+4. Create a .env file with the following variables:
+
+   ```sh
+   JWT_SECRET=<your_jwt_secret>
+   CLOUD_NAME=<your_cloud_name>
+   API_KEY=<your_api_key>
+   API_SECRET=<your_api_secret>
+   ```
+
+5. Run the development environment
+   ```sh
+   npm run server:dev
+   ```
+
+### API Documentation:
+
+Base URL:
+   ```sh
+   http://localhost:PORT/api
+   ```
+   (Replace PORT with your actual port number or provide a deployed URL if available.)
 
 
 <!-- Links -->
+
 [Visual Studio Code]: https://custom-icon-badges.demolab.com/badge/Visual%20Studio%20Code-0078d7.svg?logo=vsc&logoColor=white
-[VSC-url]:https://code.visualstudio.com/
+[VSC-url]: https://code.visualstudio.com/
 [Prisma]: https://img.shields.io/badge/Prisma-2D3748?logo=prisma&logoColor=white
 [Prisma-url]: https://www.prisma.io/
 [Node.js]: https://img.shields.io/badge/Node.js-6DA55F?logo=node.js&logoColor=white
@@ -68,4 +81,3 @@ Installation
 [Postgres-url]: https://www.postgresql.org/
 [JavaScript]: https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=000
 [JavaScript-url]: https://www.javascript.com/
-
