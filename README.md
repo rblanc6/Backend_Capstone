@@ -64,7 +64,7 @@ Base URL:
    ```sh
    http://localhost:PORT/api
    ```
-   (Replace PORT with your actual port number or provide a deployed URL if available.)
+   (Replace PORT with your actual port number or provide a deployed URL if available)
 
 
 <!-- Links -->
