@@ -20,7 +20,7 @@ app.options('*', cors()); // Handle OPTIONS pre-flight requests
 app.use(function (req, res, next) {
   res.header(
     "Access-Control-Allow-Origin",
-    "https://backend-capstone-2-f5zh.onrender.com/api"
+    "https://racipe-hub.onrender.com/api"
   ); 
   res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
   res.header(
